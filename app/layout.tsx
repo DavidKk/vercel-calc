@@ -1,0 +1,35 @@
+import type { Metadata } from 'next'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
+import './globals.css'
+import { NotificationProvider } from '@/components/Notification/useNotification'
+import { Nav } from './Nav'
+import Footer from './Footer'
+
+export const metadata: Metadata = {
+  title: 'Open APIs',
+  description:
+    'This service collects and caches commonly used public OPENAPIs to facilitate developer access. It provides caching and forwarding services for commonly used public APIs, making it easier for developers to quickly access them.',
+}
+
+interface RootLayoutProps {
+  children: React.ReactNode
+}
+
+export default function RootLayout(props: Readonly<RootLayoutProps>) {
+  const { children } = props
+
+  return (
+    <html lang="en">
+      <Analytics />
+      <SpeedInsights />
+      <body className="antialiased min-h-screen flex flex-col">
+        <NotificationProvider>
+          <Nav />
+          {children}
+          <Footer />
+        </NotificationProvider>
+      </body>
+    </html>
+  )
+}
