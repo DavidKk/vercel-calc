@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { CheckIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/react/24/solid'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { CheckIcon, XMarkIcon, ArrowPathIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid'
 import type { ProductType } from '@/app/actions/prices/product'
 import { Button } from '@/app/prices/components/Button'
 import { useNotification } from '@/components/Notification/useNotification'
 import { Spinner } from '@/components/Spinner'
 import { useProductActions } from '@/app/prices/contexts/product'
-import { Input } from './Input'
+import { ProductFormInput } from './ProductFormInput'
+import { validateProductName, validateProductUnitPrice, validateUnit, validateUnitConversion } from '@/utils/validation'
+import { parseUnit, parseUnitConversion, formatNumber } from '@/utils/format'
 
 export interface ProductFormProps {
   product?: ProductType | null
@@ -18,41 +20,164 @@ export interface ProductFormProps {
 
 export function ProductForm({ product, afterSaved, onCancel, showEmptyState = true }: ProductFormProps) {
   const notification = useNotification()
-  const [name, setName] = useState('')
-  const [brand, setBrand] = useState('')
-  const [unit, setUnit] = useState('')
-  const [recommendedPrice, setRecommendedPrice] = useState('')
-  const { loadingAddProduct, loadingUpdateProduct, loadingRemoveProduct, addProductAction, updateProductAction, removeProductAction } = useProductActions()
+  const formRef = useRef<HTMLFormElement>(null)
+  const [name, setName] = useState(product?.name || '')
+  const [brand, setBrand] = useState(product?.brand || '')
+  const [unit, setUnit] = useState(product?.unit || '')
+  const [unitBestPrice, setRecommendedPrice] = useState(product?.unitBestPrice?.toString() || '')
+  const [unitConversions, setUnitConversions] = useState<string[]>(() => {
+    if (product?.unitConversions && product.unitConversions.length > 0) {
+      // unitConversions are stored without = prefix
+      return [...product.unitConversions]
+    }
+    return ['']
+  })
+  const { products, loadingAddProduct, loadingUpdateProduct, loadingRemoveProduct, addProductAction, updateProductAction, removeProductAction } = useProductActions()
+  const [isUnitDisabled, setIsUnitDisabled] = useState(false)
+
+  // Create a list of unique product names for suggestions
+  const productSuggestions = Array.from(new Set(products.map((p) => p.name))).map((name) => ({
+    label: name,
+    value: name,
+  }))
+
+  // Generate unit conversion suggestions based on existing products using useMemo
+  const unitConversionSuggestions = useMemo(() => {
+    return generateUnitConversionSuggestions(unit, products)
+  }, [unit, products])
 
   const isEditing = !!product
   const isFormSubmitting = loadingAddProduct || loadingUpdateProduct || loadingRemoveProduct
 
+  // When product prop changes, update the form fields
   useEffect(() => {
     if (product) {
       setName(product.name)
       setBrand(product.brand || '')
       setUnit(product.unit)
-      setRecommendedPrice(product.recommendedPrice.toString())
+      setRecommendedPrice(product.unitBestPrice.toString())
+      // unitConversions are stored without = prefix
+      const storedConversions = product.unitConversions && product.unitConversions.length > 0 ? [...product.unitConversions] : ['']
+      setUnitConversions(storedConversions)
     } else {
       setName('')
       setBrand('')
       setUnit('')
       setRecommendedPrice('')
+      setUnitConversions([''])
+      setIsUnitDisabled(false)
     }
   }, [product])
+
+  // When product name changes, check for existing products with same name
+  // This handles unit auto-fill and locking logic
+  useEffect(() => {
+    if (name.trim() !== '') {
+      let existingProduct
+
+      if (isEditing && product) {
+        // Edit mode: exclude current product
+        existingProduct = products.find((p) => p.name === name.trim() && p.id !== product.id)
+      } else {
+        // Add mode: check all products
+        existingProduct = products.find((p) => p.name === name.trim())
+      }
+
+      if (existingProduct) {
+        // Auto-fill or sync unit
+        if (unit !== existingProduct.unit) {
+          setUnit(existingProduct.unit)
+        }
+        setIsUnitDisabled(true)
+
+        // Auto-fill unit conversions if existing product has them
+        // unitConversions are stored without = prefix
+        if (existingProduct.unitConversions && existingProduct.unitConversions.length > 0) {
+          setUnitConversions([...existingProduct.unitConversions])
+        }
+      } else {
+        setIsUnitDisabled(false)
+      }
+    } else {
+      setIsUnitDisabled(false)
+    }
+  }, [name, products, isEditing, product?.id, unit])
+
+  // When product name changes in add mode, auto-fill unit formulas from existing products
+  // This finds the earliest product with unit conversions and uses its formulas
+  useEffect(() => {
+    if (!isEditing && name.trim() !== '') {
+      // Only in add mode, not edit mode
+      const existingProducts = products.filter((p) => p.name === name.trim())
+
+      if (existingProducts.length > 0) {
+        // Find the earliest product (by ID) that has unit conversions
+        const sortedProducts = [...existingProducts].sort((a, b) => parseInt(a.id) - parseInt(b.id))
+        const productWithFormula = sortedProducts.find((p) => p.unitConversions && p.unitConversions.length > 0)
+
+        if (productWithFormula && productWithFormula.unitConversions) {
+          // Auto-fill unit conversions from the earliest product with formulas
+          // unitConversions are stored without = prefix
+          setUnitConversions([...productWithFormula.unitConversions])
+        }
+      }
+    }
+  }, [name, products, isEditing])
+
+  const handleUnitConversionChange = (index: number, value: string) => {
+    const newUnitConversions = [...unitConversions]
+    newUnitConversions[index] = value
+    setUnitConversions(newUnitConversions)
+  }
+
+  const addUnitConversion = () => {
+    if (unitConversions.length < 5) {
+      setUnitConversions([...unitConversions, ''])
+    }
+  }
+
+  const removeUnitConversion = (index: number) => {
+    if (unitConversions.length > 1) {
+      const newUnitConversions = [...unitConversions]
+      newUnitConversions.splice(index, 1)
+      setUnitConversions(newUnitConversions)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!name.trim() || !unit.trim() || !recommendedPrice.trim()) {
+    if (!name.trim() || !unit.trim() || !unitBestPrice.trim()) {
       notification.error('Please fill in all required fields')
       return
     }
 
-    const price = parseFloat(recommendedPrice)
+    const price = parseFloat(unitBestPrice)
     if (isNaN(price) || price <= 0) {
       notification.error('Please enter a valid recommended price')
       return
+    }
+
+    // Validate unit conversion formats and extract just the conversion part
+    const conversionsToSave: string[] = []
+    for (const conversion of unitConversions) {
+      if (conversion.trim() !== '') {
+        // If the conversion contains product info in parentheses, extract just the unit conversion part
+        let conversionForValidation = conversion.trim()
+        if (conversionForValidation.includes(' (') && conversionForValidation.endsWith(')')) {
+          // Extract just the unit conversion part (before the parentheses)
+          conversionForValidation = conversionForValidation.split(' (')[0]
+        }
+
+        // Validate the conversion part
+        if (!validateUnitConversion(conversionForValidation)) {
+          notification.error('Unit conversion must be number and unit (e.g., 100ml or 100 ml)')
+          return
+        }
+
+        // Add the conversion part to the list to save
+        conversionsToSave.push(conversionForValidation)
+      }
     }
 
     try {
@@ -61,9 +186,10 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
       if (isEditing && product) {
         const updated = await updateProductAction(product.id, {
           name: name.trim(),
-          brand: brand.trim() || undefined,
+          brand: brand.trim(),
           unit: unit.trim(),
-          recommendedPrice: price,
+          unitBestPrice: price,
+          unitConversions: conversionsToSave.length > 0 ? conversionsToSave : undefined,
         })
 
         if (!updated) {
@@ -72,12 +198,17 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
 
         savedProduct = updated
         notification.success('Product updated successfully')
+        // Call afterSaved callback to switch to the saved product only on success
+        if (afterSaved) {
+          afterSaved(savedProduct)
+        }
       } else {
         const newProduct = await addProductAction({
           name: name.trim(),
           brand: brand.trim() || undefined,
           unit: unit.trim(),
-          recommendedPrice: price,
+          unitBestPrice: price,
+          unitConversions: conversionsToSave.length > 0 ? conversionsToSave : undefined,
         })
 
         if (!newProduct) {
@@ -86,20 +217,21 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
 
         savedProduct = newProduct
         notification.success('Product created successfully')
-      }
-
-      if (afterSaved) {
-        afterSaved(savedProduct)
-      }
-    } catch (error) {
-      notification.error(`Failed to save product, please try again`)
-    } finally {
-      if (!isEditing) {
+        // Call afterSaved callback to switch to the saved product only on success
+        if (afterSaved) {
+          afterSaved(savedProduct)
+        }
+        // For new products, clear the form but keep it open only on success
         setName('')
         setBrand('')
         setUnit('')
         setRecommendedPrice('')
+        setUnitConversions([''])
+        setIsUnitDisabled(false)
       }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save product, please try again'
+      notification.error(errorMessage)
     }
   }
 
@@ -114,6 +246,7 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
         setBrand('')
         setUnit('')
         setRecommendedPrice('')
+        setUnitConversions([''])
         onCancel()
 
         notification.success('Product deleted successfully')
@@ -123,21 +256,27 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
     }
   }
 
-  // 重置表单到初始状态
   const handleReset = () => {
     if (product) {
-      // 如果是编辑模式，重置为产品原始数据
       setName(product.name)
       setBrand(product.brand || '')
       setUnit(product.unit)
-      setRecommendedPrice(product.recommendedPrice.toString())
+      setRecommendedPrice(product.unitBestPrice.toString())
+      // unitConversions are stored without = prefix
+      const storedConversions = product.unitConversions && product.unitConversions.length > 0 ? [...product.unitConversions] : ['']
+      setUnitConversions(storedConversions)
+      // Re-enable unit field when editing
+      setIsUnitDisabled(false)
     } else {
-      // 如果是新增模式，清空所有字段
       setName('')
       setBrand('')
       setUnit('')
       setRecommendedPrice('')
+      setUnitConversions([''])
+      setIsUnitDisabled(false)
     }
+
+    formRef.current?.dispatchEvent(new Event('reset'))
   }
 
   if (showEmptyState && !isEditing && !product) {
@@ -169,12 +308,81 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full" ref={formRef}>
         <div className="flex flex-col gap-y-3">
-          <Input label="Product Name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Cola, Vegetables, Meat" required />
-          <Input label="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="e.g. Coca-Cola, Pepsi (optional)" />
-          <Input label="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="e.g. per KG, per bottle, per pack" required />
-          <Input label="Recommended Price" prefix="¥" value={recommendedPrice} onChange={(e) => setRecommendedPrice(e.target.value)} placeholder="0.00" required />
+          <ProductFormInput
+            label="Product Name"
+            value={name}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+            validator={validateProductName}
+            placeholder="e.g. Cola, Vegetables, Meat"
+            required
+            suggestions={productSuggestions}
+          />
+          <ProductFormInput
+            label="Brand"
+            value={brand}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBrand(e.target.value)}
+            placeholder="e.g. Coca-Cola, Pepsi (optional)"
+          />
+          <ProductFormInput
+            label="Unit"
+            prefix="/"
+            value={unit}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUnit(e.target.value)}
+            validator={validateUnit}
+            placeholder="e.g. kg, 100 ml"
+            required
+            disabled={isUnitDisabled}
+          />
+          <ProductFormInput
+            label="Unit Price"
+            prefix="¥"
+            value={unitBestPrice}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRecommendedPrice(e.target.value)}
+            validator={validateProductUnitPrice}
+            placeholder="0.00"
+            required
+          />
+
+          <div className="flex flex-col gap-y-2">
+            <label className="text-gray-300 text-sm font-medium">Unit Conversions</label>
+            {unitConversions.map((conversion, index) => (
+              <div key={index} className="flex items-center gap-x-2">
+                <div className="flex-1">
+                  <ProductFormInput
+                    label=""
+                    prefix="="
+                    value={conversion}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUnitConversionChange(index, e.target.value)}
+                    validator={validateUnitConversion}
+                    placeholder="e.g. 100ml, 1kg"
+                    suggestions={unitConversionSuggestions}
+                  />
+                </div>
+                {unitConversions.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeUnitConversion(index)}
+                    className="h-10 w-10 flex items-center justify-center text-gray-400 hover:text-white transition-colors duration-200"
+                    title="Remove"
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+            ))}
+            {unitConversions.length < 5 && (
+              <button
+                type="button"
+                onClick={addUnitConversion}
+                className="inline-flex items-center gap-x-2 text-gray-400 hover:text-white transition-colors duration-200 text-sm mt-1 mr-auto"
+              >
+                <PlusIcon className="h-4 w-4" />
+                <span>Add Unit Conversion</span>
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col gap-2 pt-4 mt-auto">
@@ -218,4 +426,90 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
       )}
     </div>
   )
+}
+
+// Generate unit conversion suggestions based on existing products
+function generateUnitConversionSuggestions(unit: string, products: ProductType[]) {
+  if (!unit) {
+    return []
+  }
+
+  // Parse the current unit to get the number and unit part (e.g., "2kg" -> { number: 2, unit: "kg" })
+  const parsedCurrentUnit = parseUnit(unit)
+  const currentUnitNumber = parsedCurrentUnit.number
+  const currentUnit = parsedCurrentUnit.unit || unit
+
+  if (!currentUnit) {
+    return []
+  }
+
+  // Collect all unit conversions that involve the current unit
+  const suggestionsMap = new Map<string, string>()
+
+  products.forEach((product) => {
+    if (product.unitConversions && product.unitConversions.length > 0) {
+      // Parse the product's base unit
+      const productBaseUnitParsed = parseUnit(product.unit)
+      const productBaseUnit = productBaseUnitParsed.unit || product.unit
+      const productBaseNumber = productBaseUnitParsed.number
+
+      product.unitConversions.forEach((conversionStr) => {
+        // Parse the conversion
+        const parsed = parseUnitConversion(conversionStr)
+        const conversionNumber = parsed.number
+        const conversionUnit = parsed.unit
+
+        if (conversionUnit && productBaseUnit) {
+          // Create a conversion relationship: productBaseNumber productBaseUnit = conversionNumber conversionUnit
+          // For example: 1 kg = 2 斤
+
+          if (productBaseUnit === currentUnit) {
+            // Current unit is the base unit
+            // Calculate how many conversion units equal currentUnitNumber of current units
+            // For example, if we have "1 kg = 2 斤", and current unit is "2 kg",
+            // we want to show "4 斤 (Product Name - Brand)" as a suggestion
+            if (productBaseNumber > 0) {
+              const conversionUnitsForCurrent = (conversionNumber * currentUnitNumber) / productBaseNumber
+              const formattedNumber = formatNumber(conversionUnitsForCurrent, 6)
+              const productInfo = product.brand ? `${product.name} - ${product.brand}` : product.name
+              const key = `${formattedNumber} ${conversionUnit} (${productInfo})`
+              suggestionsMap.set(key, key)
+            }
+          } else if (conversionUnit === currentUnit) {
+            // Current unit is the conversion unit
+            // Calculate how many base units equal currentUnitNumber of current units
+            // For example, if we have "1 kg = 2 斤", and current unit is "4 斤",
+            // we want to show "2 kg (Product Name - Brand)" as a suggestion
+            if (conversionNumber > 0) {
+              const baseUnitsForCurrent = (productBaseNumber * currentUnitNumber) / conversionNumber
+              const formattedNumber = formatNumber(baseUnitsForCurrent, 6)
+              const productInfo = product.brand ? `${product.name} - ${product.brand}` : product.name
+              const key = `${formattedNumber} ${productBaseUnit} (${productInfo})`
+              suggestionsMap.set(key, key)
+            }
+          }
+        }
+      })
+    }
+  })
+
+  // Convert map to array of suggestion objects
+  const suggestions = Array.from(suggestionsMap.values()).map((value) => ({
+    label: value,
+    value: value,
+  }))
+
+  // Filter out invalid suggestions (ones that don't parse correctly)
+  const validSuggestions = suggestions.filter((suggestion) => {
+    try {
+      // Extract just the unit part for validation (before the parentheses)
+      const unitPart = suggestion.value.split(' (')[0]
+      const parsed = parseUnitConversion(unitPart)
+      return parsed.unit && parsed.number > 0
+    } catch {
+      return false
+    }
+  })
+
+  return validSuggestions
 }

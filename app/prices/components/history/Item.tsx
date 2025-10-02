@@ -2,7 +2,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { PriceLevelDisplay } from '@/app/prices/components/PriceLevelDisplay'
 import { formatNumberWithCommas } from '@/utils/format'
 import { Spinner } from '@/components/Spinner'
-import { useHistoryContext, useHistoryActions } from '@/app/prices/contexts/history'
+import { useHistoryActions } from '@/app/prices/contexts/history'
 import { useNotification } from '@/components/Notification/useNotification'
 import type { HistoryRecord } from './types'
 
@@ -14,22 +14,20 @@ export interface ItemProps {
 
 export function Item({ record, onDelete, loading }: ItemProps) {
   const notification = useNotification()
-  const { loading: contextLoading } = useHistoryContext()
-  const { removeFromHistory, loadingRemoveFromHistory } = useHistoryActions()
+  const { loading: contextLoading, removeFromHistory, loadingRemoveFromHistory } = useHistoryActions()
   const isLoading = loading || contextLoading || loadingRemoveFromHistory
 
   const handleDelete = async () => {
     if (isLoading) return
 
-    if (confirm(`确定要删除 ${record.productType} 的这条历史记录吗？`)) {
+    if (confirm(`Are you sure you want to delete this history record for ${record.productType}?`)) {
       try {
         await removeFromHistory(record.id)
-        // 删除成功后执行回调
         if (onDelete) {
           onDelete(record.id)
         }
       } catch (error) {
-        notification.error(`删除历史记录失败: ${error}`)
+        notification.error(`Failed to delete history record: ${error}`)
       }
     }
   }
@@ -54,7 +52,7 @@ export function Item({ record, onDelete, loading }: ItemProps) {
         className={`absolute top-1 right-1 h-5 w-5 text-gray-500 hover:text-white rounded transition-all duration-200 ease-in-out flex items-center justify-center ${
           isLoading ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-gray-700 hover:bg-gray-600 opacity-0 group-hover:opacity-100'
         }`}
-        title={isLoading ? '删除中...' : '删除记录'}
+        title="Delete"
       >
         <XMarkIcon className="h-5 w-5 mx-auto" />
       </button>
@@ -78,9 +76,10 @@ export function Item({ record, onDelete, loading }: ItemProps) {
         </div>
 
         <div className="flex justify-between items-center text-gray-500 text-xs">
-          <span>
-            推荐价格: <b className="text-xxs">¥</b>
-            {formatNumberWithCommas(record.recommendedPrice, 2)}
+          <span className="inline-flex gap-x-1">
+            Best Price: <b className="text-xxs">¥</b>
+            {formatNumberWithCommas(record.unitBestPrice, 2)}
+            &nbsp;
             {record.unit}
           </span>
           <span>{record.timestamp}</span>

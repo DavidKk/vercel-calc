@@ -3,7 +3,10 @@ import { withAuthHandler } from '@/initializer/wrapper'
 import { jsonInvalidParameters } from '@/initializer/response'
 import { getHistoryList, addHistory, removeHistory, modifyHistory, clearHistory } from '@/app/actions/prices/history'
 
-/** GET /api/prices/history - optional query `productType` */
+/**
+ * Get history list
+ * Optional query param `productType`
+ */
 export const GET = api(
   withAuthHandler(async (req) => {
     const url = new URL(req.url)
@@ -13,7 +16,9 @@ export const GET = api(
   })
 )
 
-/** POST /api/prices/history - add history record */
+/**
+ * Add history record
+ */
 export const POST = api(
   withAuthHandler(async (req) => {
     const body = await req.json()
@@ -23,7 +28,10 @@ export const POST = api(
   })
 )
 
-/** DELETE /api/prices/history - expects query id */
+/**
+ * Delete history record
+ * Query param `id` required
+ */
 export const DELETE = api(
   withAuthHandler(async (req) => {
     const url = new URL(req.url)
@@ -34,7 +42,10 @@ export const DELETE = api(
   })
 )
 
-/** PATCH /api/prices/history - modify history record (expects id in query) */
+/**
+ * Modify history record
+ * Query param `id` required
+ */
 export const PATCH = api(
   withAuthHandler(async (req) => {
     const url = new URL(req.url)
@@ -46,7 +57,9 @@ export const PATCH = api(
   })
 )
 
-/** PUT /api/prices/history/clear - clear all history (no body) */
+/**
+ * Clear all history
+ */
 export const PUT = api(
   withAuthHandler(async () => {
     await clearHistory()

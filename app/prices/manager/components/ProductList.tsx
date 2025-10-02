@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import type { ProductType } from '@/app/actions/prices/product'
 import { ProductItem } from './ProductItem'
 import { Button } from '@/app/prices/components/Button'
 import { Spinner } from '@/components/Spinner'
+import { ProductFilter } from './ProductFilter'
 
 export interface ProductListProps {
   products: ProductType[]
@@ -13,9 +15,17 @@ export interface ProductListProps {
   onAddNew: () => void
   onProductDeleted: (productId: string) => void
   loading?: boolean
+  onFilterChange: (filterText: string) => void
 }
 
-export function ProductList({ products, selectedProduct, onProductSelect, onAddNew, onProductDeleted, loading = false }: ProductListProps) {
+export function ProductList({ products, selectedProduct, onProductSelect, onAddNew, onProductDeleted, loading = false, onFilterChange }: ProductListProps) {
+  const [filterText, setFilterText] = useState<string>('')
+
+  const handleFilterChange = (filterText: string) => {
+    setFilterText(filterText)
+    onFilterChange(filterText)
+  }
+
   const handleDelete = (product: ProductType, e: React.MouseEvent) => {
     e.stopPropagation()
     if (confirm(`Are you sure you want to delete the product "${product.name}${product.brand ? ` - ${product.brand}` : ''}"?`)) {
@@ -30,7 +40,12 @@ export function ProductList({ products, selectedProduct, onProductSelect, onAddN
         <span className="text-gray-400 text-sm">{products.length} items</span>
       </div>
 
-      <div className="flex flex-col gap-y-3 px-3 h-[calc(100vh-312px)] overflow-y-auto custom-scrollbar relative">
+      {/* Filter bar placed above the product list */}
+      <div className="px-3">
+        <ProductFilter onFilterChange={handleFilterChange} />
+      </div>
+
+      <div className="flex flex-col gap-y-3 px-3 h-[calc(100vh-350px)] overflow-y-auto custom-scrollbar relative">
         {products.length > 0 ? (
           <>
             {products.map((product) => (
@@ -38,9 +53,9 @@ export function ProductList({ products, selectedProduct, onProductSelect, onAddN
                 key={product.id}
                 product={product}
                 isSelected={selectedProduct?.id === product.id}
-                onSelect={() => !loading && onProductSelect(product)} // 禁止在加载时选择
-                onDelete={(e) => !loading && handleDelete(product, e)} // 禁止在加载时删除
-                disabled={loading} // 传递禁用状态给ProductItem
+                onSelect={() => !loading && onProductSelect(product)}
+                onDelete={(e) => !loading && handleDelete(product, e)}
+                disabled={loading}
               />
             ))}
           </>

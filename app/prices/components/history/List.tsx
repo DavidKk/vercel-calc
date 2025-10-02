@@ -9,11 +9,11 @@ export interface ListProps {
 
 export function List({ history, loading = false }: ListProps) {
   return (
-    <div className="space-y-3 h-full overflow-y-auto custom-scrollbar relative">
+    <div className="flex flex-col gap-y-3 h-full overflow-y-auto custom-scrollbar relative">
       {history.length > 0 ? (
         history.map((record) => <Item key={record.id} record={record} />)
       ) : (
-        <div className="text-gray-400 text-center py-4 h-full flex items-center justify-center">暂无计算历史</div>
+        <div className="text-gray-400 text-center py-4 h-full flex items-center justify-center">No calculation history</div>
       )}
 
       {loading && (

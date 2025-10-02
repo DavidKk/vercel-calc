@@ -22,7 +22,7 @@ export interface SearchableSelectProps {
 }
 
 export default function SearchableSelect(props: SearchableSelectProps) {
-  const { options = [], value, placeholder, onChange, clearable = true, required, size = 'sm', searchable = true } = props
+  const { options = [], value, placeholder, onChange, clearable = true, size = 'sm', searchable = true } = props
 
   const [selectedOption, setSelectedOption] = useState(value)
   const [searchTerm, setSearchTerm] = useState('')

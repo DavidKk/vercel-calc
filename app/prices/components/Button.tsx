@@ -7,7 +7,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: ReactNode
   iconPosition?: 'left' | 'right'
   fullWidth?: boolean
-  loading?: boolean // 添加loading属性
+  loading?: boolean
 }
 
 export function Button({
@@ -22,24 +22,20 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  // 基础样式
   const baseClasses = 'font-medium transition-all duration-200 flex items-center justify-center rounded-lg shadow-lg hover:shadow-xl active:scale-95 disabled:cursor-not-allowed'
 
-  // 尺寸样式
   const sizeClasses = {
     sm: 'h-8 text-sm',
     md: 'h-10 text-base',
     lg: 'h-12 text-lg',
   }
 
-  // 特殊处理 icon 变体的尺寸
   const iconSizeClasses = {
     sm: 'h-6 w-6',
     md: 'h-8 w-8',
     lg: 'h-10 w-10',
   }
 
-  // 变体样式
   const variantClasses = {
     primary: 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800',
     secondary: 'bg-gray-600 text-white hover:bg-gray-700',
@@ -49,7 +45,6 @@ export function Button({
     icon: 'bg-gray-700 text-gray-400 hover:text-white hover:bg-indigo-600 rounded transition-all duration-200 ease-in-out flex items-center justify-center',
   }
 
-  // 禁用状态样式
   const disabledClasses = {
     primary: 'bg-gray-600 text-gray-300 cursor-not-allowed',
     secondary: 'bg-gray-600 text-gray-300 cursor-not-allowed',
@@ -59,28 +54,20 @@ export function Button({
     icon: 'bg-gray-700 text-gray-400 cursor-not-allowed',
   }
 
-  // 使用 classnames 构建最终的类名
   const classes = classnames(
     baseClasses,
     {
-      // 尺寸类
       [sizeClasses[size]]: variant !== 'icon',
       [iconSizeClasses[size]]: variant === 'icon',
-
-      // 变体类
       [variantClasses[variant]]: !disabled && !loading,
       [disabledClasses[variant]]: disabled || loading,
-
-      // 宽度类
       'w-full': fullWidth,
     },
     className
   )
 
-  // 图标间距
   const iconMargin = children ? (size === 'sm' ? 'mx-1' : size === 'md' ? 'mx-1.5' : 'mx-2') : ''
 
-  // Spinner组件
   const Spinner = () => (
     <svg className="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

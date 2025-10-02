@@ -76,7 +76,9 @@ export function formatNumberWithCommas(value: string | number, decimals?: number
  * @returns The parsed numeric value
  */
 export function parseFormattedNumber(value: string): number {
-  if (!value) return 0
+  if (!value) {
+    return 0
+  }
 
   // Remove all commas and parse as float
   const cleanValue = value.replace(/,/g, '')
@@ -84,4 +86,89 @@ export function parseFormattedNumber(value: string): number {
 
   // Return 0 if parsing fails, otherwise return the parsed value
   return isNaN(parsed) ? 0 : parsed
+}
+
+/**
+ * Format a number to a string with proper decimal places
+ * @param num The number to format
+ * @param maxDecimals Maximum number of decimal places (default: 6)
+ * @returns Formatted number string
+ */
+export function formatNumber(num: number, maxDecimals = 6): string {
+  if (isNaN(num)) return '0'
+
+  // Round to maxDecimals decimal places
+  const rounded = Math.round(num * Math.pow(10, maxDecimals)) / Math.pow(10, maxDecimals)
+
+  // Convert to string and remove trailing zeros
+  let str = rounded.toString()
+
+  // If it's a decimal number, remove trailing zeros
+  if (str.includes('.')) {
+    str = str.replace(/\.?0+$/, '')
+  }
+
+  return str
+}
+
+/**
+ * Parse unit string to extract number and unit parts
+ * @param unit The unit string (e.g. "kg", "10 kg", "100ml")
+ * @returns Object with number and unit properties
+ */
+export function parseUnit(unit: string): { number: number; unit: string } {
+  if (!unit || unit.trim() === '') {
+    return { number: 1, unit: '' }
+  }
+
+  const trimmed = unit.trim()
+
+  // Split by spaces
+  const parts = trimmed.split(/\s+/)
+
+  // If we have two parts (number and unit separated by space)
+  if (parts.length === 2) {
+    // First part should be a number
+    const numberPart = parts[0].replace(/,/g, '') // Remove commas
+    const number = parseFloat(numberPart)
+
+    // Second part should be the unit
+    const unitPart = parts[1]
+
+    return {
+      number: isNaN(number) ? 1 : number,
+      unit: unitPart,
+    }
+  } else {
+    // If no space, the whole thing should be number + unit
+    // Find where number ends and unit begins
+    const cleanInput = parts[0].replace(/,/g, '') // Remove commas
+
+    // Find the boundary between number and unit
+    let i = 0
+    // Skip digits and decimal point
+    while (i < cleanInput.length && (/^\d$/.test(cleanInput[i]) || cleanInput[i] === '.')) {
+      i++
+    }
+
+    // The rest should be the unit
+    const unitPart = cleanInput.substring(i)
+    const numberPart = cleanInput.substring(0, i)
+
+    const number = parseFloat(numberPart)
+
+    return {
+      number: isNaN(number) ? 1 : number,
+      unit: unitPart || parts[0],
+    }
+  }
+}
+
+/**
+ * Parse unit conversion string to extract number and unit parts
+ * @param conversion The unit conversion string (e.g. "100ml", "100 ml")
+ * @returns Object with number and unit properties
+ */
+export function parseUnitConversion(conversion: string): { number: number; unit: string } {
+  return parseUnit(conversion)
 }

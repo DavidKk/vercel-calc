@@ -1,11 +1,11 @@
 'use client'
 
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { formatNumberWithCommas } from '@/utils/format'
 import type { ProductType } from '@/app/actions/prices/product'
 import { Button } from '@/app/prices/components/Button'
+import { PriceDisplay } from '@/app/prices/components/PriceDisplay'
 
-interface ProductItemProps {
+export interface ProductItemProps {
   product: ProductType
   isSelected: boolean
   onSelect: () => void
@@ -47,17 +47,16 @@ export function ProductItem({ product, isSelected, onSelect, onDelete, disabled 
         <div className="flex font-medium text-white text-sm">{displayName}</div>
 
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-x-1">
             <span className="text-white text-lg font-medium">
-              <b className="text-sm">¥</b>
-              {formatNumberWithCommas(product.recommendedPrice, 2)}
+              <PriceDisplay amount={product.unitBestPrice} size="lg" />
             </span>
-            <span className="text-gray-400 text-xs">({product.unit})</span>
+            <span className="text-gray-400 text-xs">/{product.unit}</span>
           </div>
         </div>
 
         <div className="flex justify-between items-center text-gray-400 text-xs">
-          <span>推荐价格</span>
+          <span>Best Price</span>
           <span>ID: {product.id.slice(-8)}</span>
         </div>
       </div>

@@ -10,11 +10,8 @@ export interface HistoryRecord {
   averagePrice: number
   priceLevel: PriceLevel
   timestamp: string
-  // 添加推荐价格字段
-  recommendedPrice: number
-  // 添加品牌字段（可选）
+  unitBestPrice: number
   brand?: string
-  // 商品快照（保存当时的商品所有属性）
   product?: ProductSnapshot
 }
 
@@ -24,7 +21,7 @@ export interface ProductSnapshot {
   id: string
   name: string
   unit: string
-  recommendedPrice: number
+  unitBestPrice: number
   brand?: string
   skuId?: string
 }
@@ -35,7 +32,7 @@ export function toProductSnapshot(p: ProductType | undefined | null): ProductSna
     id: p.id,
     name: p.name,
     unit: p.unit,
-    recommendedPrice: p.recommendedPrice,
+    unitBestPrice: p.unitBestPrice,
     brand: p.brand,
   }
 }

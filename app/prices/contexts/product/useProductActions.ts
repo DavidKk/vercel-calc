@@ -6,7 +6,7 @@ import type { ProductType } from '@/app/actions/prices/product'
 import { getAllProducts, createProduct, updateProduct, deleteProduct } from '@/app/actions/prices/product'
 
 export function useProductActions() {
-  const { dispatch } = useProductContext()
+  const { products, loading, dispatch } = useProductContext()
 
   const [loadProducts, loadingLoadProducts, errorLoadProducts] = useAction(async () => {
     dispatch({ type: 'SET_LOADING', payload: true })
@@ -87,6 +87,8 @@ export function useProductActions() {
   }, [])
 
   return {
+    products,
+    loading,
     loadProducts,
     addProductAction,
     updateProductAction,

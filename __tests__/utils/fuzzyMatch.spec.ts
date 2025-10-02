@@ -1,4 +1,35 @@
-import { fuzzyMatch } from '../../utils/fuzzyMatch'
+import { fuzzyMatch } from '@/utils/fuzzyMatch'
+
+describe('fuzzyMatch', () => {
+  it('should match exact strings', () => {
+    const result = fuzzyMatch('Cola', 'Cola')
+    expect(result.matched).toBe(true)
+    expect(result.score).toBeGreaterThan(0)
+  })
+
+  it('should match partial strings', () => {
+    const result = fuzzyMatch('Coca Cola', 'Cola')
+    expect(result.matched).toBe(true)
+    expect(result.score).toBeGreaterThan(0)
+  })
+
+  it('should not match unrelated strings', () => {
+    const result = fuzzyMatch('Coca Cola', 'Orange')
+    expect(result.matched).toBe(false)
+  })
+
+  it('should handle empty pattern', () => {
+    const result = fuzzyMatch('Coca Cola', '')
+    expect(result.matched).toBe(true)
+    expect(result.score).toBe(1)
+  })
+
+  it('should handle empty text', () => {
+    const result = fuzzyMatch('', 'Cola')
+    expect(result.matched).toBe(false)
+    expect(result.score).toBe(0)
+  })
+})
 
 describe('fuzzyMatch', () => {
   describe('Chinese text matching', () => {

@@ -6,36 +6,61 @@ import type { PriceLevel } from '@/app/prices/types'
 import { NumberInput } from './NumberInput'
 import { Button } from './Button'
 
+/**
+ * Props for the InputSection component
+ */
 export interface InputSectionProps {
+  /** Array of available product types */
   productTypes: ProductType[]
+  /** Currently selected product type */
   selectedProductType: ProductType
-  unitPrice: string
-  quantity: string
+  /** Total price input value */
+  totalPrice: string
+  /** Total quantity input value */
+  totalQuantity: string
+  /** Callback function when product selection changes */
   onProductChange: (value: any) => void
-  onUnitPriceChange: (value: string, numericValue: number) => void
-  onQuantityChange: (value: string, numericValue: number) => void
+  /** Callback function when total price changes */
+  onTotalPriceChange: (value: string, numericValue: number) => void
+  /** Callback function when total quantity changes */
+  onTotalQuantityChange: (value: string, numericValue: number) => void
+  /** Callback function to clear all inputs */
   onClear: () => void
+  /** Callback function to save the input data */
   onSave: () => void
+  /** Calculated average price */
   averagePrice: number | null
+  /** Price level based on comparison */
   priceLevel: PriceLevel | null
+  /** Whether to disable the save button */
   disableSave?: boolean
+  /** Whether the save operation is in progress */
   saving?: boolean
+  /** Whether to support formula input */
+  supportFormula?: boolean
 }
 
+/**
+ * InputSection component provides input fields for product selection, total price, and total quantity
+ * For example: 42 yuan for 2 jin (42元 2斤) means purchasing something that costs 42 yuan in total for 2 jin in total.
+ * @param props - InputSection component props
+ * @returns React component for inputting product data
+ */
 export function InputSection({
   productTypes,
   selectedProductType,
-  unitPrice,
-  quantity,
+  totalPrice,
+  totalQuantity,
   onProductChange,
-  onUnitPriceChange,
-  onQuantityChange,
+  onTotalPriceChange,
+  onTotalQuantityChange,
   onClear,
   onSave,
   averagePrice,
   priceLevel,
   disableSave,
   saving = false,
+  supportFormula = false,
 }: InputSectionProps) {
   const productOptions = useMemo(() => {
     const nameSet = new Set(productTypes.map((t) => t.name))
@@ -44,13 +69,18 @@ export function InputSection({
   }, [productTypes])
 
   const disabled = disableSave || (averagePrice === null && priceLevel === null)
+  const { name, unit } = selectedProductType
 
   return (
     <div className="bg-gray-900 rounded-lg p-4 h-full">
       <div className="flex flex-col gap-4 h-full">
-        <SearchableSelect value={selectedProductType.name} options={productOptions} onChange={onProductChange} clearable={false} size="md" />
-        <NumberInput value={unitPrice} unit="元" label="总价" onChange={onUnitPriceChange} />
-        <NumberInput value={quantity} unit={selectedProductType.unit} label="数量" onChange={onQuantityChange} />
+        <SearchableSelect value={name} options={productOptions} onChange={onProductChange} clearable={false} size="md" />
+
+        {/* Input field for total price */}
+        <NumberInput value={totalPrice} unit="¥" onChange={onTotalPriceChange} />
+
+        {/* Input field for total quantity */}
+        <NumberInput value={totalQuantity} unit={unit} supportFormula={supportFormula} onChange={onTotalQuantityChange} />
 
         <div className="flex gap-2 mt-auto">
           <Button onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" fullWidth />

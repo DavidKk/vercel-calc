@@ -4,9 +4,9 @@ import { jsonInvalidParameters } from '@/initializer/response'
 import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct } from '@/app/actions/prices/product'
 
 /**
- * GET /api/prices/products
- * - if query param `id` present, return single product
- * - otherwise return all products
+ * Get products
+ * If query param `id` present, return single product
+ * Otherwise return all products
  */
 export const GET = api(async (req) => {
   const url = new URL(req.url)
@@ -22,11 +22,13 @@ export const GET = api(async (req) => {
   return { data: products }
 })
 
-/** POST /api/prices/products - create product */
+/**
+ * Create product
+ */
 export const POST = api(
   withAuthHandler(async (req) => {
     const body = await req.json()
-    if (!body || !body.name || typeof body.recommendedPrice !== 'number') {
+    if (!body || !body.name || typeof body.unitBestPrice !== 'number') {
       return jsonInvalidParameters('invalid product payload')
     }
 
@@ -35,7 +37,10 @@ export const POST = api(
   })
 )
 
-/** PUT /api/prices/products - update product (query id) */
+/**
+ * Update product
+ * Query param `id` required
+ */
 export const PUT = api(
   withAuthHandler(async (req) => {
     const url = new URL(req.url)
@@ -49,7 +54,10 @@ export const PUT = api(
   })
 )
 
-/** DELETE /api/prices/products - delete product (query id) */
+/**
+ * Delete product
+ * Query param `id` required
+ */
 export const DELETE = api(
   withAuthHandler(async (req) => {
     const url = new URL(req.url)

@@ -1,6 +1,7 @@
 'use server'
 
 import type { HistoryRecord } from '@/app/prices/components/history/types'
+import { validateCookie } from '@/services/auth/access'
 import { readGistFile, writeGistFile, getGistInfo } from '@/services/gist'
 
 const HISTORY_FILE_NAME = 'history.json'
@@ -36,7 +37,7 @@ function dedupeAndInsert(newRecord: HistoryRecord, current: HistoryRecord[]): Hi
         a.product.id === b.product.id &&
         a.product.name === b.product.name &&
         a.product.unit === b.product.unit &&
-        a.product.recommendedPrice === b.product.recommendedPrice &&
+        a.product.unitBestPrice === b.product.unitBestPrice &&
         a.product.brand === b.product.brand &&
         a.product.skuId === b.product.skuId
       )
@@ -50,7 +51,7 @@ function dedupeAndInsert(newRecord: HistoryRecord, current: HistoryRecord[]): Hi
       a.averagePrice === b.averagePrice &&
       a.priceLevel === b.priceLevel &&
       a.timestamp === b.timestamp &&
-      a.recommendedPrice === b.recommendedPrice &&
+      a.unitBestPrice === b.unitBestPrice &&
       a.brand === b.brand &&
       productEqual
     )
@@ -77,12 +78,23 @@ function dedupeAndInsert(newRecord: HistoryRecord, current: HistoryRecord[]): Hi
 
 // CRUD API
 export async function getHistoryList(productTypeName?: string): Promise<HistoryRecord[]> {
+  if (!(await validateCookie())) {
+    return []
+  }
+
   const history = await getHistoryFromGist()
-  if (!productTypeName) return history
+  if (!productTypeName) {
+    return history
+  }
+
   return history.filter((h) => h.productType === productTypeName)
 }
 
 export async function addHistory(record: HistoryRecord): Promise<HistoryRecord[]> {
+  if (!(await validateCookie())) {
+    throw new Error('Not authorized')
+  }
+
   const currentHistory = await getHistoryFromGist()
   const updatedHistory = dedupeAndInsert(record, currentHistory)
   await saveHistoryToGist(updatedHistory)
@@ -90,6 +102,10 @@ export async function addHistory(record: HistoryRecord): Promise<HistoryRecord[]
 }
 
 export async function removeHistory(id: number): Promise<HistoryRecord[]> {
+  if (!(await validateCookie())) {
+    throw new Error('Not authorized')
+  }
+
   const currentHistory = await getHistoryFromGist()
   const updatedHistory = currentHistory.filter((h) => h.id !== id)
   await saveHistoryToGist(updatedHistory)
@@ -97,6 +113,10 @@ export async function removeHistory(id: number): Promise<HistoryRecord[]> {
 }
 
 export async function modifyHistory(id: number, updates: Partial<HistoryRecord>): Promise<HistoryRecord[]> {
+  if (!(await validateCookie())) {
+    throw new Error('Not authorized')
+  }
+
   const currentHistory = await getHistoryFromGist()
   const idx = currentHistory.findIndex((h) => h.id === id)
   if (idx === -1) return currentHistory
@@ -111,7 +131,10 @@ export async function modifyHistory(id: number, updates: Partial<HistoryRecord>)
 
 /** Add new history record with per-day per-product per-brand lowest price dedupe */
 export async function addHistoryItem(newRecord: HistoryRecord, currentHistory?: HistoryRecord[]) {
-  // 如果传入了 currentHistory，使用它；否则从 gist 读取
+  if (!(await validateCookie())) {
+    throw new Error('Not authorized')
+  }
+
   const history = currentHistory && currentHistory.length ? currentHistory : await getHistoryFromGist()
   const updatedHistory = dedupeAndInsert(newRecord, history)
   await saveHistoryToGist(updatedHistory)
@@ -120,5 +143,9 @@ export async function addHistoryItem(newRecord: HistoryRecord, currentHistory?: 
 
 /** Clear all history */
 export async function clearHistory() {
+  if (!(await validateCookie())) {
+    throw new Error('Not authorized')
+  }
+
   await saveHistoryToGist([])
 }

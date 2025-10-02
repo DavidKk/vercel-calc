@@ -5,6 +5,8 @@ import './globals.css'
 import { NotificationProvider } from '@/components/Notification/useNotification'
 import { Nav } from './Nav'
 import Footer from './Footer'
+import { LanguageProvider } from '@/contexts/language'
+import { headers } from 'next/headers'
 
 export const metadata: Metadata = {
   title: 'Open APIs',
@@ -16,18 +18,22 @@ interface RootLayoutProps {
   children: React.ReactNode
 }
 
-export default function RootLayout(props: Readonly<RootLayoutProps>) {
+export default async function RootLayout(props: Readonly<RootLayoutProps>) {
   const { children } = props
+  const language = (await headers()).get('accept-language') || 'en'
 
   return (
     <html lang="en">
       <Analytics />
       <SpeedInsights />
+
       <body className="antialiased min-h-screen flex flex-col">
         <NotificationProvider>
-          <Nav />
-          {children}
-          <Footer />
+          <LanguageProvider serverLanguage={language}>
+            <Nav />
+            {children}
+            <Footer />
+          </LanguageProvider>
         </NotificationProvider>
       </body>
     </html>
