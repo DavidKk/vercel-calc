@@ -17,6 +17,8 @@ export interface ComparisonItem {
   level: PriceLevel
   /** Quantity of the product */
   quantity: number
+  /** Product remark (optional) */
+  remark?: string
 }
 
 /**
@@ -75,6 +77,7 @@ export function List({ items, onBrandSelect, quantity, unit, totalPriceNumeric }
                 {item.name}
                 {item.brand && <span className="text-gray-400 text-sm font-normal">&nbsp;-&nbsp;{item.brand}</span>}
               </div>
+              {item.remark && <div className="text-gray-400 text-xs">{item.remark}</div>}
 
               <div className="flex items-center gap-x-1 text-white text-lg font-light">
                 <PriceDisplay amount={item.unitBestPrice} size="md" />

@@ -13,6 +13,8 @@ import { toProductSnapshot } from './components/history/types'
 import type { ComparisonItem } from './components/result/List'
 import { useHistoryActions } from './contexts/history'
 import { isFormula, type PriceLevel } from './types'
+import { WEIGHT_FORMULAS } from './constants/formulas'
+import { parseUnit } from '@/utils/format'
 
 export interface CalculatorProps {
   productTypes: ProductType[]
@@ -23,9 +25,8 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
   const { history, loading, loadHistoryByProduct, addToHistory, loadingAddToHistory } = useHistoryActions()
   const notification = useNotification()
   /** Name of the currently selected product */
-  const [selectedProductName, setSelectedProductName] = useLocalStorageState('product-name', () => {
-    return initialProductType?.name || productTypes[0]?.name || ''
-  })
+  const defualtProductName = initialProductType?.name || productTypes[0]?.name || ''
+  const [selectedProductName, setSelectedProductName] = useLocalStorageState('product-name', () => defualtProductName)
 
   /** Total price input value as string */
   const [totalPrice, setTotalPrice] = useState<string>('')
@@ -47,7 +48,15 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
     loadHistoryByProduct(String(value))
   }
 
-  const productsBySelectedName = useMemo(() => productTypes.filter((p) => p.name === selectedProductName), [productTypes, selectedProductName])
+  const productsBySelectedName = useMemo(() => {
+    const types = productTypes.filter((p) => p.name === selectedProductName)
+    if (types.length === 0) {
+      return productTypes.filter((p) => p.name === defualtProductName)
+    }
+
+    return types
+  }, [productTypes, selectedProductName, defualtProductName])
+
   const selectedUnit = productsBySelectedName[0]?.unit || (initialProductType?.unit ?? '')
 
   const calculateAveragePrice = () => {
@@ -63,19 +72,44 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
     const avg = totalPriceNumeric / totalQuantityNumeric
     setAveragePrice(parseFloat(avg.toFixed(2)))
 
+    const formulaContent = totalQuantity.substring(1).trim()
+    const parsedTotalQuantityFormula = parseUnit(formulaContent)
+    const { unit: totalQuantityFormulaUnit } = parsedTotalQuantityFormula
+
+    const formulas = new Set<string>()
+    const hitUnits = new Set<string>()
+    WEIGHT_FORMULAS.forEach(([_, formula]) => {
+      const formulaContent = formula.substring(1).trim()
+      const parsedFormula = parseUnit(formulaContent)
+      const { unit: formulaUnit } = parsedFormula
+      if (formulaUnit !== totalQuantityFormulaUnit) {
+        return
+      }
+
+      formulas.add(formulaContent)
+      hitUnits.add(formulaUnit)
+    })
+
     // Calculate comparison items for each product
     const comparisons: ComparisonItem[] = []
     for (const p of productsBySelectedName) {
       // Calculate actual quantity for each item (if formula calculation is needed)
       let itemActualQuantity = totalQuantityNumeric // Use globally calculated quantity by default
+
       const { unitConversions, unit, unitBestPrice } = p
       if (isFormula(totalQuantity)) {
         if (!(unitConversions?.length && unit)) {
           continue
         }
 
+        const filteredUnitConversions = unitConversions.filter((u) => {
+          const parsedFormula = parseUnit(formulaContent)
+          return !hitUnits.has(parsedFormula.unit)
+        })
+
+        const mergedUnitConversions = [...filteredUnitConversions, ...formulas]
         const formula = totalQuantity.substring(1).trim()
-        const itemCalculatedQuantity = calculateFormulaQuantity(`= ${formula}`, unit, unitConversions, unit)
+        const itemCalculatedQuantity = calculateFormulaQuantity(`= ${formula}`, unit, mergedUnitConversions, unit)
 
         if (!isNaN(itemCalculatedQuantity)) {
           itemActualQuantity = itemCalculatedQuantity

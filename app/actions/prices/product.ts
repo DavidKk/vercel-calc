@@ -11,6 +11,7 @@ export interface ProductType {
   unitBestPrice: number
   brand?: string
   unitConversions?: string[]
+  remark?: string
 }
 
 const PRODUCTS_FILE_NAME = 'products.json'

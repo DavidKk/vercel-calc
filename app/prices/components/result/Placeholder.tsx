@@ -7,7 +7,7 @@ export interface PlaceholderProps {
 
 export function Placeholder(props: PlaceholderProps) {
   const { product } = props
-  const { name, brand, unit, unitBestPrice } = product
+  const { name, brand, unit, unitBestPrice, remark } = product
   return (
     <div className="flex flex-col items-center justify-center w-full h-full gap-[4px]">
       <div className="text-white text-lg font-medium">
@@ -19,6 +19,7 @@ export function Placeholder(props: PlaceholderProps) {
         <PriceDisplay amount={unitBestPrice} size="lg" />
         {unit && <span className="text-gray-400 text-sm">&nbsp;/&nbsp;{unit}</span>}
       </div>
+      {remark && <div className="text-gray-400 text-xs">{remark}</div>}
     </div>
   )
 }

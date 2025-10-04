@@ -64,7 +64,7 @@ export function InputSection({
 }: InputSectionProps) {
   const productOptions = useMemo(() => {
     const nameSet = new Set(productTypes.map((t) => t.name))
-    const names = nameSet.values().toArray()
+    const names = Array.from(nameSet)
     return names.map((name) => ({ value: name, label: name }))
   }, [productTypes])
 

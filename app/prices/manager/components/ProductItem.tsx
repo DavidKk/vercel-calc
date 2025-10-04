@@ -15,6 +15,7 @@ export interface ProductItemProps {
 
 export function ProductItem({ product, isSelected, onSelect, onDelete, disabled = false }: ProductItemProps) {
   const displayName = product.brand ? `${product.name} - ${product.brand}` : product.name
+  const { remark } = product
 
   return (
     <div
@@ -43,8 +44,9 @@ export function ProductItem({ product, isSelected, onSelect, onDelete, disabled 
         <Button onClick={onDelete} variant="icon" size="sm" icon={<TrashIcon className="h-4 w-4" />} title="Delete Product" disabled={disabled} />
       </div>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col">
         <div className="flex font-medium text-white text-sm">{displayName}</div>
+        {remark && <div className="text-gray-400 text-xs">{remark}</div>}
 
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-x-1">

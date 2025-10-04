@@ -33,6 +33,7 @@ export function Item({ record, onDelete, loading }: ItemProps) {
   }
 
   const displayProductName = record.brand ? `${record.productType} - ${record.brand}` : record.productType
+  const remark = record.remark || record.product?.remark
 
   return (
     <div
@@ -57,8 +58,9 @@ export function Item({ record, onDelete, loading }: ItemProps) {
         <XMarkIcon className="h-5 w-5 mx-auto" />
       </button>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col">
         <div className="flex font-medium text-white text-sm">{displayProductName}</div>
+        {remark && <div className="text-gray-400 text-xs">{remark}</div>}
         <div className="flex justify-between gap-x-4">
           <div className="inline-flex flex-wrap items-center gap-x-2">
             <span className="text-white text-lg font-medium break-all">

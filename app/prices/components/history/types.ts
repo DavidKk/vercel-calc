@@ -13,6 +13,7 @@ export interface HistoryRecord {
   unitBestPrice: number
   brand?: string
   product?: ProductSnapshot
+  remark?: string
 }
 
 export { PriceLevel, isPriceLevel, getPriceLevelText }
@@ -24,6 +25,7 @@ export interface ProductSnapshot {
   unitBestPrice: number
   brand?: string
   skuId?: string
+  remark?: string
 }
 
 export function toProductSnapshot(p: ProductType | undefined | null): ProductSnapshot | undefined {
@@ -34,5 +36,6 @@ export function toProductSnapshot(p: ProductType | undefined | null): ProductSna
     unit: p.unit,
     unitBestPrice: p.unitBestPrice,
     brand: p.brand,
+    remark: p.remark,
   }
 }

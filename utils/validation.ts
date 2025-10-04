@@ -285,3 +285,24 @@ export function validateUnitConversion(conversion: string): true | string {
     return true
   }
 }
+
+/**
+ * Validate remark field
+ * @param remark The remark string to validate
+ * @returns True if the format is valid, string with error message otherwise
+ */
+export function validateRemark(remark: string): true | string {
+  if (!remark) {
+    return true // remark is optional
+  }
+
+  // Trim the remark
+  const trimmedRemark = remark.trim()
+
+  // Check length - max 200 characters
+  if (trimmedRemark.length > 200) {
+    return 'Remark must be less than 200 characters'
+  }
+
+  return true
+}

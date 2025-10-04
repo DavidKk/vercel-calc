@@ -8,8 +8,9 @@ import { useNotification } from '@/components/Notification/useNotification'
 import { Spinner } from '@/components/Spinner'
 import { useProductActions } from '@/app/prices/contexts/product'
 import { ProductFormInput } from './ProductFormInput'
-import { validateProductName, validateProductUnitPrice, validateUnit, validateUnitConversion } from '@/utils/validation'
+import { validateProductName, validateProductUnitPrice, validateUnit, validateUnitConversion, validateRemark } from '@/utils/validation'
 import { parseUnit, parseUnitConversion, formatNumber } from '@/utils/format'
+import { WEIGHT_FORMULAS } from '@/app/prices/constants/formulas'
 
 export interface ProductFormProps {
   product?: ProductType | null
@@ -32,6 +33,7 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
     }
     return ['']
   })
+  const [remark, setRemark] = useState(product?.remark || '')
   const { products, loadingAddProduct, loadingUpdateProduct, loadingRemoveProduct, addProductAction, updateProductAction, removeProductAction } = useProductActions()
   const [isUnitDisabled, setIsUnitDisabled] = useState(false)
 
@@ -59,12 +61,14 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
       // unitConversions are stored without = prefix
       const storedConversions = product.unitConversions && product.unitConversions.length > 0 ? [...product.unitConversions] : ['']
       setUnitConversions(storedConversions)
+      setRemark(product.remark || '')
     } else {
       setName('')
       setBrand('')
       setUnit('')
       setRecommendedPrice('')
       setUnitConversions([''])
+      setRemark('')
       setIsUnitDisabled(false)
     }
   }, [product])
@@ -190,6 +194,7 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
           unit: unit.trim(),
           unitBestPrice: price,
           unitConversions: conversionsToSave.length > 0 ? conversionsToSave : undefined,
+          remark: remark.trim() || undefined,
         })
 
         if (!updated) {
@@ -209,6 +214,7 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
           unit: unit.trim(),
           unitBestPrice: price,
           unitConversions: conversionsToSave.length > 0 ? conversionsToSave : undefined,
+          remark: remark.trim() || undefined,
         })
 
         if (!newProduct) {
@@ -227,6 +233,7 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
         setUnit('')
         setRecommendedPrice('')
         setUnitConversions([''])
+        setRemark('')
         setIsUnitDisabled(false)
       }
     } catch (error) {
@@ -267,12 +274,14 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
       setUnitConversions(storedConversions)
       // Re-enable unit field when editing
       setIsUnitDisabled(false)
+      setRemark(product.remark || '')
     } else {
       setName('')
       setBrand('')
       setUnit('')
       setRecommendedPrice('')
       setUnitConversions([''])
+      setRemark('')
       setIsUnitDisabled(false)
     }
 
@@ -343,6 +352,14 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
             validator={validateProductUnitPrice}
             placeholder="0.00"
             required
+          />
+
+          <ProductFormInput
+            label="Remark"
+            value={remark}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRemark(e.target.value)}
+            validator={validateRemark}
+            placeholder="Additional information (optional)"
           />
 
           <div className="flex flex-col gap-y-2">
@@ -446,51 +463,95 @@ function generateUnitConversionSuggestions(unit: string, products: ProductType[]
   // Collect all unit conversions that involve the current unit
   const suggestionsMap = new Map<string, string>()
 
-  products.forEach((product) => {
-    if (product.unitConversions && product.unitConversions.length > 0) {
-      // Parse the product's base unit
-      const productBaseUnitParsed = parseUnit(product.unit)
-      const productBaseUnit = productBaseUnitParsed.unit || product.unit
-      const productBaseNumber = productBaseUnitParsed.number
+  const hitUnits = new Set<string>()
+  // First, add suggestions from our constant formulas
+  // Add constant formula suggestions
+  WEIGHT_FORMULAS.forEach(([targetUnit, formula]: [string, string]) => {
+    // Extract the source unit from the formula (everything after '=')
+    const formulaContent = formula.substring(1).trim()
+    const parsedFormula = parseUnit(formulaContent)
+    const formulaUnit = parsedFormula.unit
+    const formulaNumber = parsedFormula.number
 
-      product.unitConversions.forEach((conversionStr) => {
-        // Parse the conversion
-        const parsed = parseUnitConversion(conversionStr)
-        const conversionNumber = parsed.number
-        const conversionUnit = parsed.unit
+    // Only add if the current unit matches either the source or target unit
+    if (formulaUnit === currentUnit) {
+      // Convert from formula unit to target unit
+      const targetNumber = (currentUnitNumber * formulaNumber) / 1 // Assuming base is 1
+      const formattedNumber = formatNumber(targetNumber, 6)
+      const key = `${formattedNumber} ${targetUnit} (Constant Formula)`
+      suggestionsMap.set(key, key)
 
-        if (conversionUnit && productBaseUnit) {
-          // Create a conversion relationship: productBaseNumber productBaseUnit = conversionNumber conversionUnit
-          // For example: 1 kg = 2 斤
-
-          if (productBaseUnit === currentUnit) {
-            // Current unit is the base unit
-            // Calculate how many conversion units equal currentUnitNumber of current units
-            // For example, if we have "1 kg = 2 斤", and current unit is "2 kg",
-            // we want to show "4 斤 (Product Name - Brand)" as a suggestion
-            if (productBaseNumber > 0) {
-              const conversionUnitsForCurrent = (conversionNumber * currentUnitNumber) / productBaseNumber
-              const formattedNumber = formatNumber(conversionUnitsForCurrent, 6)
-              const productInfo = product.brand ? `${product.name} - ${product.brand}` : product.name
-              const key = `${formattedNumber} ${conversionUnit} (${productInfo})`
-              suggestionsMap.set(key, key)
-            }
-          } else if (conversionUnit === currentUnit) {
-            // Current unit is the conversion unit
-            // Calculate how many base units equal currentUnitNumber of current units
-            // For example, if we have "1 kg = 2 斤", and current unit is "4 斤",
-            // we want to show "2 kg (Product Name - Brand)" as a suggestion
-            if (conversionNumber > 0) {
-              const baseUnitsForCurrent = (productBaseNumber * currentUnitNumber) / conversionNumber
-              const formattedNumber = formatNumber(baseUnitsForCurrent, 6)
-              const productInfo = product.brand ? `${product.name} - ${product.brand}` : product.name
-              const key = `${formattedNumber} ${productBaseUnit} (${productInfo})`
-              suggestionsMap.set(key, key)
-            }
-          }
-        }
-      })
+      hitUnits.add(formulaUnit)
+      return
     }
+
+    if (targetUnit === currentUnit) {
+      // Convert from target unit to formula unit
+      const sourceNumber = (currentUnitNumber * 1) / formulaNumber // Assuming base is 1
+      const formattedNumber = formatNumber(sourceNumber, 6)
+      const key = `${formattedNumber} ${formulaUnit} (Constant Formula)`
+      suggestionsMap.set(key, key)
+
+      hitUnits.add(formulaUnit)
+    }
+  })
+
+  products.forEach((product) => {
+    if (!(product.unitConversions && product.unitConversions.length > 0)) {
+      return
+    }
+
+    // Parse the product's base unit
+    const productBaseUnitParsed = parseUnit(product.unit)
+    const productBaseUnit = productBaseUnitParsed.unit || product.unit
+    const productBaseNumber = productBaseUnitParsed.number
+
+    product.unitConversions.forEach((conversionStr) => {
+      // Parse the conversion
+      const parsed = parseUnitConversion(conversionStr)
+      const conversionNumber = parsed.number
+      const conversionUnit = parsed.unit
+
+      if (hitUnits.has(conversionUnit)) {
+        return
+      }
+
+      if (!(conversionUnit && productBaseUnit)) {
+        return
+      }
+
+      // Create a conversion relationship: productBaseNumber productBaseUnit = conversionNumber conversionUnit
+      // For example: 1 kg = 2 斤
+      if (productBaseUnit === currentUnit) {
+        // Current unit is the base unit
+        // Calculate how many conversion units equal currentUnitNumber of current units
+        // For example, if we have "1 kg = 2 斤", and current unit is "2 kg",
+        // we want to show "4 斤 (Product Name - Brand)" as a suggestion
+        if (productBaseNumber > 0) {
+          const conversionUnitsForCurrent = (conversionNumber * currentUnitNumber) / productBaseNumber
+          const formattedNumber = formatNumber(conversionUnitsForCurrent, 6)
+          const productInfo = product.brand ? `${product.name} - ${product.brand}` : product.name
+          const key = `${formattedNumber} ${conversionUnit} (${productInfo})`
+          suggestionsMap.set(key, key)
+        }
+
+        return
+      }
+
+      if (conversionUnit === currentUnit) {
+        // Current unit is the conversion unit
+        // Calculate how many base units equal currentUnitNumber of current units
+        // For example, if we have "1 kg = 2 斤", and current unit is "4 斤",
+        // we want to show "2 kg (Product Name - Brand)" as a suggestion
+        if (conversionNumber > 0) {
+          const baseUnitsForCurrent = (productBaseNumber * currentUnitNumber) / conversionNumber
+          const formattedNumber = formatNumber(baseUnitsForCurrent, 6)
+          const productInfo = product.brand ? `${product.name} - ${product.brand}` : product.name
+          const key = `${formattedNumber} ${productBaseUnit} (${productInfo})`
+          suggestionsMap.set(key, key)
+        }
+      }
+    })
   })
 
   // Convert map to array of suggestion objects
