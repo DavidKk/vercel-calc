@@ -1,4 +1,4 @@
-import { calculateAveragePrice } from '../../../utils/price'
+import { calculateAveragePrice } from '@/utils/price'
 import type { ProductType } from '@/app/actions/prices/product'
 
 describe('calculateAveragePrice', () => {
@@ -69,7 +69,7 @@ describe('calculateAveragePrice', () => {
 
     // Need to re-import after mock
     jest.resetModules()
-    const { calculateAveragePrice: calculateAveragePriceWithMock } = require('../../../utils/price')
+    const { calculateAveragePrice: calculateAveragePriceWithMock } = require('@/utils/price')
 
     const result = calculateAveragePriceWithMock('100', '= 10 kg', mockProducts, 'kg')
     expect(result).toHaveLength(2)

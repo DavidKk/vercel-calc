@@ -1,5 +1,5 @@
 import { PriceLevel } from '@/app/prices/types'
-import { calculatePriceLevel } from '../../../utils/price'
+import { calculatePriceLevel } from '@/utils/price'
 
 describe('calculatePriceLevel', () => {
   it('should throw error when unitBestPrice is zero', () => {

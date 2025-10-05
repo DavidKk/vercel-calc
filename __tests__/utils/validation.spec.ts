@@ -1,4 +1,4 @@
-import { validateChineseNumerals } from '../../utils/validation'
+import { validateChineseNumerals } from '@/utils/validation'
 
 describe('validateChineseNumerals', () => {
   it('should validate valid Chinese numerals', () => {

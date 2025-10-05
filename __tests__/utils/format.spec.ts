@@ -8,7 +8,7 @@ import {
   convertChineseToArabic,
   extractChineseNumerals,
   convertChineseNumeralsInString,
-} from '../../utils/format'
+} from '@/utils/format'
 
 describe('formatProjectName', () => {
   it('should format project names correctly', () => {

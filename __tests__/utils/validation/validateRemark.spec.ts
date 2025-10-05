@@ -1,4 +1,4 @@
-import { validateRemark } from '../../../utils/validation'
+import { validateRemark } from '@/utils/validation'
 
 describe('validateRemark', () => {
   it('should validate empty remark as valid', () => {
