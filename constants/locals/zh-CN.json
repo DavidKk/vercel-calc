@@ -1,6 +1,8 @@
 {
-  "Low": "非常划算",
-  "Reasonable": "价格合理",
+  "Excellent": "非常划算",
+  "Good": "价格合理",
+  "Acceptable": "可以接受",
   "High": "价格偏高",
+  "Expensive": "价格较高",
   "Overpriced": "全家宝"
 }

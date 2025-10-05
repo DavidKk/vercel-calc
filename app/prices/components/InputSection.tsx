@@ -5,7 +5,7 @@ import type { ProductType } from '@/app/actions/prices/product'
 import { COMMON_FORMULAS } from '@/app/prices/constants/formulas'
 import SearchableSelect from '@/components/SearchableSelect'
 import { parseUnit } from '@/utils/format'
-import { processUnitConversionNumericPart } from '@/utils/price'
+import { processUnitConversionNumericPart } from '@/utils/price/processUnitConversionNumericPart'
 
 import { isFormula } from '../types'
 import { Button } from './Button'

@@ -1,4 +1,4 @@
-import { calculateFormulaQuantity } from '@/utils/price'
+import { calculateFormulaQuantity } from '@/utils/price/calculateFormulaQuantity'
 
 describe('calculateFormulaQuantity', () => {
   it('should return NaN when formula does not start with =', () => {

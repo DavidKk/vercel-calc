@@ -1,4 +1,4 @@
-import { batchProcessUnitConversionNumericPart } from '@/utils/price'
+import { batchProcessUnitConversionNumericPart } from '@/utils/price/processUnitConversionNumericPart'
 
 describe('batchProcessUnitConversionNumericPart', () => {
   it('should return conversions as-is when base unit number is 1', () => {

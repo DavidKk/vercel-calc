@@ -3,7 +3,7 @@ import { getPriceLevelText } from '@/app/prices/types'
 import { api } from '@/initializer/controller'
 import { jsonInvalidParameters } from '@/initializer/response'
 import { safeDivide } from '@/utils/calc'
-import { calculatePriceLevel } from '@/utils/price'
+import { calculatePriceLevel } from '@/utils/price/calculatePriceLevel'
 
 export interface CalculateResult {
   productName: string
@@ -30,16 +30,16 @@ const calculatePriceAction = async (productName: string, unitPrice: number, quan
     throw new Error('Quantity cannot be zero')
   }
 
-  const averagePrice = safeDivide(unitPrice, quantity)
-  const ratio = averagePrice / unitBestPrice
-  const priceLevel = calculatePriceLevel(averagePrice, unitBestPrice)
+  const unitCurrentPrice = safeDivide(unitPrice, quantity)
+  const ratio = unitCurrentPrice / unitBestPrice
+  const priceLevel = calculatePriceLevel(unitCurrentPrice, unitBestPrice)
 
   const description = getPriceLevelText(priceLevel)
   const recommendation = description
 
   return {
     productName,
-    averagePrice: parseFloat(averagePrice.toFixed(2)),
+    averagePrice: parseFloat(unitCurrentPrice.toFixed(2)),
     ratio: parseFloat(ratio.toFixed(2)),
     unitPrice,
     quantity,

@@ -1,8 +1,10 @@
 export enum PriceLevel {
-  LOW = 1,
-  REASONABLE = 2,
-  HIGH = 3,
-  FAMILY_TREASURE = 4,
+  EXCELLENT = 1,
+  GOOD = 2,
+  ACCEPTABLE = 3,
+  HIGH = 4,
+  EXPENSIVE = 5,
+  FAMILY_TREASURE = 6,
 }
 
 /**
@@ -39,12 +41,16 @@ export function getPriceLevelText(level: PriceLevel | null) {
   }
 
   switch (level) {
-    case PriceLevel.LOW:
-      return 'Low'
-    case PriceLevel.REASONABLE:
-      return 'Reasonable'
+    case PriceLevel.EXCELLENT:
+      return 'Excellent'
+    case PriceLevel.GOOD:
+      return 'Good'
+    case PriceLevel.ACCEPTABLE:
+      return 'Acceptable'
     case PriceLevel.HIGH:
       return 'High'
+    case PriceLevel.EXPENSIVE:
+      return 'Expensive'
     case PriceLevel.FAMILY_TREASURE:
       return 'Overpriced'
   }

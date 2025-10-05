@@ -7,7 +7,7 @@ import { useNotification } from '@/components/Notification/useNotification'
 import { useFullscreen } from '@/hooks/useFullscreen'
 import { useLocalStorageState } from '@/hooks/useLocalStorageState'
 import { parseFormattedNumber, parseUnit } from '@/utils/format'
-import { calculateAveragePrice } from '@/utils/price'
+import { calculateAveragePrice } from '@/utils/price/calculateAveragePrice'
 
 import { List } from './components/history'
 import { toProductSnapshot } from './components/history/types'

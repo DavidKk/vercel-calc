@@ -2,12 +2,12 @@ import type { ProductType } from '@/app/actions/prices/product'
 import type { ComparisonItem } from '@/app/prices/components/result/List'
 import { COMMON_FORMULAS } from '@/app/prices/constants/formulas'
 import { isFormula } from '@/app/prices/types'
+import { safeDivide } from '@/utils/calc'
 import { convertChineseNumeralsInString, parseFormattedNumber, parseUnit } from '@/utils/format'
 
-import { safeDivide } from '../calc'
-import { batchProcessUnitConversionNumericPart } from '../price'
 import { calculateFormulaQuantity } from './calculateFormulaQuantity'
 import { calculatePriceLevel } from './calculatePriceLevel'
+import { batchProcessUnitConversionNumericPart } from './processUnitConversionNumericPart'
 
 /**
  * Calculate average price and comparisons for products
@@ -73,9 +73,9 @@ export function calculateAveragePrice(totalPrice: string, totalQuantity: string,
       }
     }
 
-    const itemAvgPrice = safeDivide(totalPriceNumeric, itemActualQuantity) || 0
-    const level = calculatePriceLevel(itemAvgPrice, unitBestPrice)
-    comparisons.push({ ...p, level, quantity: itemActualQuantity, unitCurrentPrice: itemAvgPrice })
+    const itemUnitPrice = safeDivide(totalPriceNumeric, itemActualQuantity) || 0
+    const level = calculatePriceLevel(itemUnitPrice, unitBestPrice)
+    comparisons.push({ ...p, level, quantity: itemActualQuantity, unitCurrentPrice: itemUnitPrice })
   }
 
   return comparisons
