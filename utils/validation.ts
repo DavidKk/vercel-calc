@@ -290,6 +290,8 @@ export function validateUnitConversion(conversion: string): true | string {
  * Validate remark field
  * @param remark The remark string to validate
  * @returns True if the format is valid, string with error message otherwise
+ * @description Validates that the remark field is optional but if provided,
+ * it must be less than 200 characters after trimming whitespace
  */
 export function validateRemark(remark: string): true | string {
   if (!remark) {

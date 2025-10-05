@@ -7,18 +7,27 @@ import { Button } from '@/app/prices/components/Button'
 import { useNotification } from '@/components/Notification/useNotification'
 import { Spinner } from '@/components/Spinner'
 import { useProductActions } from '@/app/prices/contexts/product'
-import { ProductFormInput } from './ProductFormInput'
-import { validateProductName, validateProductUnitPrice, validateUnit, validateUnitConversion, validateRemark } from '@/utils/validation'
-import { parseUnit, parseUnitConversion, formatNumber } from '@/utils/format'
-import { COMMON_FORMULAS } from '@/app/prices/constants/formulas'
+import { ProductFormInput } from '../ProductFormInput'
+import { validateProductName, validateProductUnitPrice, validateUnit, validateRemark } from '@/utils/validation'
+import { createProductUnitConversionValidator } from './createProductUnitConversionValidator'
+import { generateUnitConversionSuggestions } from './generateUnitConversionSuggestions'
 
 export interface ProductFormProps {
+  /** The product to edit, or null for creating a new product */
   product?: ProductType | null
+  /** Callback function called after a product is successfully saved */
   afterSaved?: (product: ProductType) => void
+  /** Callback function called when the cancel button is clicked */
   onCancel: () => void
+  /** Whether to show empty state when no product is selected */
   showEmptyState?: boolean
 }
 
+/**
+ * ProductForm component for creating or editing product information
+ * @param props - ProductForm component props
+ * @returns React component for product form
+ */
 export function ProductForm({ product, afterSaved, onCancel, showEmptyState = true }: ProductFormProps) {
   const notification = useNotification()
   const formRef = useRef<HTMLFormElement>(null)
@@ -33,6 +42,7 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
     }
     return ['']
   })
+
   const [remark, setRemark] = useState(product?.remark || '')
   const { products, loadingAddProduct, loadingUpdateProduct, loadingRemoveProduct, addProductAction, updateProductAction, removeProductAction } = useProductActions()
   const [isUnitDisabled, setIsUnitDisabled] = useState(false)
@@ -54,27 +64,43 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
   // Custom validator for unit conversions that prevents common formulas
   const unitConversionValidator = useMemo(() => createProductUnitConversionValidator(unit), [unit])
 
+  const updateFormFields = (product: ProductType) => {
+    setName(product.name)
+    setBrand(product.brand || '')
+    setUnit(product.unit)
+    setRecommendedPrice(product.unitBestPrice.toString())
+    // unitConversions are stored without = prefix
+    const storedConversions = product.unitConversions && product.unitConversions.length > 0 ? [...product.unitConversions] : ['']
+    setUnitConversions(storedConversions)
+    setRemark(product.remark || '')
+  }
+
+  const clearFormFields = () => {
+    setName('')
+    setBrand('')
+    setUnit('')
+    setRecommendedPrice('')
+    setUnitConversions([''])
+    setRemark('')
+    setIsUnitDisabled(false)
+  }
+
+  const resetFormFields = () => {
+    product ? updateFormFields(product) : clearFormFields()
+  }
+
   // When product prop changes, update the form fields
   useEffect(() => {
-    if (product) {
-      setName(product.name)
-      setBrand(product.brand || '')
-      setUnit(product.unit)
-      setRecommendedPrice(product.unitBestPrice.toString())
-      // unitConversions are stored without = prefix
-      const storedConversions = product.unitConversions && product.unitConversions.length > 0 ? [...product.unitConversions] : ['']
-      setUnitConversions(storedConversions)
-      setRemark(product.remark || '')
-    } else {
-      setName('')
-      setBrand('')
-      setUnit('')
-      setRecommendedPrice('')
-      setUnitConversions([''])
-      setRemark('')
-      setIsUnitDisabled(false)
-    }
+    resetFormFields()
   }, [product])
+
+  // Filter and validate unit conversions, returning only valid ones
+  const filterValidUnitConversions = (conversions: string[], validator: (value: string) => true | string): string[] => {
+    return conversions.filter((conversion) => {
+      const validation = validator(conversion)
+      return validation === true
+    })
+  }
 
   // When product name changes, check for existing products with same name
   // This handles unit auto-fill and locking logic
@@ -100,7 +126,10 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
         // Auto-fill unit conversions if existing product has them
         // unitConversions are stored without = prefix
         if (existingProduct.unitConversions && existingProduct.unitConversions.length > 0) {
-          setUnitConversions([...existingProduct.unitConversions])
+          const validConversions = filterValidUnitConversions(existingProduct.unitConversions, unitConversionValidator)
+          if (validConversions.length > 0) {
+            setUnitConversions(validConversions)
+          }
         }
       } else {
         setIsUnitDisabled(false)
@@ -124,8 +153,13 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
 
         if (productWithFormula && productWithFormula.unitConversions) {
           // Auto-fill unit conversions from the earliest product with formulas
-          // unitConversions are stored without = prefix
-          setUnitConversions([...productWithFormula.unitConversions])
+          // Filter out invalid conversions using unitConversionValidator
+          const validConversions = filterValidUnitConversions(productWithFormula.unitConversions, unitConversionValidator)
+
+          // Only set unit conversions if there are valid ones
+          if (validConversions.length > 0) {
+            setUnitConversions(validConversions)
+          }
         }
       }
     }
@@ -233,14 +267,9 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
         if (afterSaved) {
           afterSaved(savedProduct)
         }
+
         // For new products, clear the form but keep it open only on success
-        setName('')
-        setBrand('')
-        setUnit('')
-        setRecommendedPrice('')
-        setUnitConversions([''])
-        setRemark('')
-        setIsUnitDisabled(false)
+        clearFormFields()
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to save product, please try again'
@@ -255,11 +284,7 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
       try {
         await removeProductAction(product.id)
 
-        setName('')
-        setBrand('')
-        setUnit('')
-        setRecommendedPrice('')
-        setUnitConversions([''])
+        clearFormFields()
         onCancel()
 
         notification.success('Product deleted successfully')
@@ -270,27 +295,7 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
   }
 
   const handleReset = () => {
-    if (product) {
-      setName(product.name)
-      setBrand(product.brand || '')
-      setUnit(product.unit)
-      setRecommendedPrice(product.unitBestPrice.toString())
-      // unitConversions are stored without = prefix
-      const storedConversions = product.unitConversions && product.unitConversions.length > 0 ? [...product.unitConversions] : ['']
-      setUnitConversions(storedConversions)
-      // Re-enable unit field when editing
-      setIsUnitDisabled(false)
-      setRemark(product.remark || '')
-    } else {
-      setName('')
-      setBrand('')
-      setUnit('')
-      setRecommendedPrice('')
-      setUnitConversions([''])
-      setRemark('')
-      setIsUnitDisabled(false)
-    }
-
+    resetFormFields()
     formRef.current?.dispatchEvent(new Event('reset'))
   }
 
@@ -449,136 +454,4 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
       )}
     </div>
   )
-}
-
-// Factory function that creates a validator for unit conversions
-// Prevents common formulas by pre-calculating target units for the given unit
-function createProductUnitConversionValidator(currentUnit: string) {
-  // Pre-calculate common formula target units for the current unit
-  const commonFormulaTargetUnits = new Set<string>()
-  COMMON_FORMULAS.forEach(([sourceUnit, formula]) => {
-    if (sourceUnit === currentUnit) {
-      // Parse the formula to get the target unit
-      const formulaContent = formula.substring(1).trim() // Remove the '=' prefix
-      const parsedFormula = parseUnit(formulaContent)
-      const formulaTargetUnit = parsedFormula.unit
-      if (formulaTargetUnit) {
-        commonFormulaTargetUnits.add(formulaTargetUnit)
-      }
-    }
-  })
-
-  // Return a validator function that uses the pre-calculated target units
-  return (value: string): true | string => {
-    // First, validate the format using the existing validateUnitConversion function
-    const formatValidation = validateUnitConversion(value)
-    if (formatValidation !== true) {
-      return formatValidation
-    }
-
-    // If format is valid, check if this conversion already exists in common formulas
-    const parsedConversion = parseUnitConversion(value)
-    const targetUnit = parsedConversion.unit
-
-    // Check if this conversion already exists in common formulas
-    if (commonFormulaTargetUnits.has(targetUnit)) {
-      return `The conversion to "${targetUnit}" already exists in common formulas. No need to add it again.`
-    }
-
-    return true
-  }
-}
-
-// Generate unit conversion suggestions based on existing products
-function generateUnitConversionSuggestions(unit: string, products: ProductType[]) {
-  if (!unit) {
-    return []
-  }
-
-  // Parse the current unit to get the number and unit part (e.g., "2kg" -> { number: 2, unit: "kg" })
-  const parsedCurrentUnit = parseUnit(unit)
-  const currentUnitNumber = parsedCurrentUnit.number
-  const currentUnit = parsedCurrentUnit.unit || unit
-
-  if (!currentUnit) {
-    return []
-  }
-
-  // Collect all unit conversions that involve the current unit
-  const suggestionsMap = new Map<string, string>()
-
-  // Only add suggestions from products, not from common formulas
-  products.forEach((product) => {
-    if (!(product.unitConversions && product.unitConversions.length > 0)) {
-      return
-    }
-
-    // Parse the product's base unit
-    const productBaseUnitParsed = parseUnit(product.unit)
-    const productBaseUnit = productBaseUnitParsed.unit || product.unit
-    const productBaseNumber = productBaseUnitParsed.number
-
-    product.unitConversions.forEach((conversionStr) => {
-      // Parse the conversion
-      const parsed = parseUnitConversion(conversionStr)
-      const conversionNumber = parsed.number
-      const conversionUnit = parsed.unit
-
-      if (!(conversionUnit && productBaseUnit)) {
-        return
-      }
-
-      // Create a conversion relationship: productBaseNumber productBaseUnit = conversionNumber conversionUnit
-      // For example: 1 kg = 2 斤
-      if (productBaseUnit === currentUnit) {
-        // Current unit is the base unit
-        // Calculate how many conversion units equal currentUnitNumber of current units
-        // For example, if we have "1 kg = 2 斤", and current unit is "2 kg",
-        // we want to show "4 斤 (Product Name - Brand)" as a suggestion
-        if (productBaseNumber > 0) {
-          const conversionUnitsForCurrent = (conversionNumber * currentUnitNumber) / productBaseNumber
-          const formattedNumber = formatNumber(conversionUnitsForCurrent, 6)
-          const productInfo = product.brand ? `${product.name} - ${product.brand}` : product.name
-          const key = `${formattedNumber} ${conversionUnit} (${productInfo})`
-          suggestionsMap.set(key, key)
-        }
-
-        return
-      }
-
-      if (conversionUnit === currentUnit) {
-        // Current unit is the conversion unit
-        // Calculate how many base units equal currentUnitNumber of current units
-        // For example, if we have "1 kg = 2 斤", and current unit is "4 斤",
-        // we want to show "2 kg (Product Name - Brand)" as a suggestion
-        if (conversionNumber > 0) {
-          const baseUnitsForCurrent = (productBaseNumber * currentUnitNumber) / conversionNumber
-          const formattedNumber = formatNumber(baseUnitsForCurrent, 6)
-          const productInfo = product.brand ? `${product.name} - ${product.brand}` : product.name
-          const key = `${formattedNumber} ${productBaseUnit} (${productInfo})`
-          suggestionsMap.set(key, key)
-        }
-      }
-    })
-  })
-
-  // Convert map to array of suggestion objects
-  const suggestions = Array.from(suggestionsMap.values()).map((value) => ({
-    label: value,
-    value: value,
-  }))
-
-  // Filter out invalid suggestions (ones that don't parse correctly)
-  const validSuggestions = suggestions.filter((suggestion) => {
-    try {
-      // Extract just the unit part for validation (before the parentheses)
-      const unitPart = suggestion.value.split(' (')[0]
-      const parsed = parseUnitConversion(unitPart)
-      return parsed.unit && parsed.number > 0
-    } catch {
-      return false
-    }
-  })
-
-  return validSuggestions
 }
