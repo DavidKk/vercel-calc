@@ -91,7 +91,7 @@ export default function SearchableSelect(props: SearchableSelectProps) {
   return (
     <div
       ref={selectRef}
-      className={classNames('relative', 'w-full', 'flex', 'flex-nowrap', 'shrink-0', {
+      className={classNames('relative', 'w-full', 'flex', 'flex-nowrap', {
         rounded: size === 'sm',
         'rounded-md': size === 'md',
         'rounded-lg': size === 'lg',

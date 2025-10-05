@@ -4,17 +4,15 @@ import { useState, useEffect, useMemo } from 'react'
 import type { ProductType } from '@/app/actions/prices/product'
 import { useNotification } from '@/components/Notification/useNotification'
 import { useLocalStorageState } from '@/hooks/useLocalStorageState'
-import { calculatePriceLevel, calculateFormulaQuantity } from '@/utils/price'
-import { parseFormattedNumber, parseUnit } from '@/utils/format'
+import { parseFormattedNumber } from '@/utils/format'
+import { calculateAveragePrice } from '@/utils/price'
 import { InputSection } from './components/InputSection'
 import { Result } from './components/result/Result'
 import { List } from './components/history'
-import type { HistoryRecord } from './components/history/types'
 import { toProductSnapshot } from './components/history/types'
 import type { ComparisonItem } from './components/result/List'
 import { useHistoryActions } from './contexts/history'
-import { COMMON_FORMULAS } from './constants/formulas'
-import { isFormula, type PriceLevel } from './types'
+import { isFormula } from './types'
 
 export interface CalculatorProps {
   productTypes: ProductType[]
@@ -22,7 +20,7 @@ export interface CalculatorProps {
 }
 
 export function Calculator({ productTypes, initialProductType }: CalculatorProps) {
-  const { history, loading, loadHistoryByProduct, addToHistory, loadingAddToHistory } = useHistoryActions()
+  const { history, loading, loadHistoryByProduct, addToHistory } = useHistoryActions()
   const notification = useNotification()
   /** Name of the currently selected product */
   const defualtProductName = initialProductType?.name || productTypes[0]?.name || ''
@@ -68,34 +66,39 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
   }
 
   const handleBrandSelect = async (item: ComparisonItem) => {
-    // const price = parseFloat(totalPrice)
-    // // Use formula calculated actual quantity (if exists)
-    // const qty = totalQuantityNumeric !== null ? totalQuantityNumeric : parseFloat(totalQuantity)
+    const { level: priceLevel, brand, unitBestPrice } = item
+    const totalPriceNumeric = isFormula(totalPrice) ? 0 : parseFormattedNumber(totalPrice)
+    const totalQuantityNumeric = isFormula(totalQuantity) ? 0 : parseFormattedNumber(totalQuantity)
+    const isValidPrice = !isNaN(totalPriceNumeric)
+    const isValidFormula = !(isNaN(totalQuantityNumeric) || totalQuantityNumeric === 0) || isFormula(totalQuantity)
+    if (!(isValidPrice && isValidFormula)) {
+      return []
+    }
 
-    // const today = new Date()
-    // const dateString = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')
+    const today = new Date()
+    const timestamp = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')
+    const product = toProductSnapshot(productsBySelectedName.find((p) => p.brand === item.brand) ?? productsBySelectedName[0])
+    const averagePrice = totalPriceNumeric / totalQuantityNumeric
 
-    // const newRecord: HistoryRecord = {
-    //   id: Date.now(),
-    //   productType: selectedProductName,
-    //   unitPrice: price,
-    //   quantity: qty,
-    //   unit: selectedUnit,
-    //   averagePrice: averagePrice,
-    //   priceLevel: item.level,
-    //   timestamp: dateString,
-    //   unitBestPrice: item.unitBestPrice,
-    //   brand: item.brand,
-    //   product: toProductSnapshot(productsBySelectedName.find((p) => p.brand === item.brand) ?? productsBySelectedName[0]),
-    // }
+    try {
+      await addToHistory({
+        productType: selectedProductName,
+        totalPrice: totalPriceNumeric,
+        totalQuantity: totalQuantityNumeric,
+        unit: selectedUnit,
+        averagePrice,
+        priceLevel,
+        timestamp,
+        unitBestPrice,
+        brand,
+        product,
+      })
 
-    // try {
-    //   await addToHistory(newRecord)
-    //   notification.success(`Save ${item.brand} to history records`)
-    // } catch (error) {
-    //   const message = error instanceof Error ? error.message : Object.prototype.toString.call(error)
-    //   notification.error(`Save failed: ${message}`)
-    // }
+      notification.success(`Save ${item.brand} to history records`)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : Object.prototype.toString.call(error)
+      notification.error(`Save failed: ${message}`)
+    }
   }
 
   return (
@@ -112,10 +115,6 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
               onTotalPriceChange={(value) => setTotalPrice(value)}
               onTotalQuantityChange={(value) => setTotalQuantity(value)}
               onClear={clearAll}
-              // averagePrice={averagePrice}
-              // priceLevel={priceLevel}
-              // disableSave={comparisons.some((item) => item.brand)}
-              // saving={loading || loadingAddToHistory}
               supportFormula={productsBySelectedName.some((p) => p.unitConversions && p.unitConversions.length > 0)}
             />
           </div>
@@ -135,73 +134,4 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
       </div>
     </div>
   )
-}
-
-/**
- * Calculate average price and comparisons for products
- *
- * @param totalPriceNumeric - Total price as a number
- * @param totalQuantity - Total quantity as a string (to check if it's a formula)
- * @param products - Array of products for the selected product name
- * @returns Object containing average price, price level, and comparison items
- */
-export function calculateAveragePrice(totalPrice: string, totalQuantity: string, products: ProductType[]) {
-  const totalPriceNumeric = isFormula(totalPrice) ? 0 : parseFormattedNumber(totalPrice)
-  const totalQuantityNumeric = isFormula(totalQuantity) ? 0 : parseFormattedNumber(totalQuantity)
-  const isValidPrice = !isNaN(totalPriceNumeric)
-  const isValidFormula = !(isNaN(totalQuantityNumeric) || totalQuantityNumeric === 0) || isFormula(totalQuantity)
-  if (!(isValidPrice && isValidFormula)) {
-    return []
-  }
-
-  const formulaContent = totalQuantity.substring(1).trim()
-  const parsedTotalQuantityFormula = parseUnit(formulaContent)
-  const { unit: totalQuantityFormulaUnit } = parsedTotalQuantityFormula
-
-  const formulas = new Set<string>()
-  const hitUnits = new Set<string>()
-  COMMON_FORMULAS.forEach(([_, formula]) => {
-    const formulaContent = formula.substring(1).trim()
-    const parsedFormula = parseUnit(formulaContent)
-    const { unit: formulaUnit } = parsedFormula
-    if (formulaUnit !== totalQuantityFormulaUnit) {
-      return
-    }
-
-    formulas.add(formulaContent)
-    hitUnits.add(formulaUnit)
-  })
-
-  // Calculate comparison items for each product
-  const comparisons: ComparisonItem[] = []
-  for (const p of products) {
-    // Calculate actual quantity for each item (if formula calculation is needed)
-    let itemActualQuantity = totalQuantityNumeric // Use globally calculated quantity by default
-
-    const { unitConversions, unit, unitBestPrice } = p
-    if (isFormula(totalQuantity)) {
-      if (!(unitConversions?.length && unit)) {
-        continue
-      }
-
-      const filteredUnitConversions = unitConversions.filter((u) => {
-        const parsedFormula = parseUnit(u)
-        return !hitUnits.has(parsedFormula.unit)
-      })
-
-      const mergedUnitConversions = [...filteredUnitConversions, ...formulas]
-      const formula = totalQuantity.substring(1).trim()
-      const itemCalculatedQuantity = calculateFormulaQuantity(`= ${formula}`, unit, mergedUnitConversions, unit)
-
-      if (!isNaN(itemCalculatedQuantity)) {
-        itemActualQuantity = itemCalculatedQuantity
-      }
-    }
-
-    const itemAvgPrice = totalPriceNumeric / itemActualQuantity
-    const level = calculatePriceLevel(itemAvgPrice, unitBestPrice)
-    comparisons.push({ ...p, level, quantity: itemActualQuantity })
-  }
-
-  return comparisons
 }

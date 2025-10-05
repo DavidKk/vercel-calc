@@ -1,5 +1,8 @@
-import { PriceLevel } from '@/app/prices/types'
-import { parseUnit, parseUnitConversion } from '@/utils/format'
+import type { ProductType } from '@/app/actions/prices/product'
+import type { ComparisonItem } from '@/app/prices/components/result/List'
+import { COMMON_FORMULAS } from '@/app/prices/constants/formulas'
+import { isFormula, PriceLevel } from '@/app/prices/types'
+import { parseFormattedNumber, parseUnit, parseUnitConversion } from '@/utils/format'
 
 /**
  * Calculate price level based on average price and recommended price
@@ -122,4 +125,73 @@ export function calculateFormulaQuantity(formula: string, targetUnit: string, un
     // Return NaN if any error occurs during parsing
     return NaN
   }
+}
+
+/**
+ * Calculate average price and comparisons for products
+ *
+ * @param totalPriceNumeric - Total price as a number
+ * @param totalQuantity - Total quantity as a string (to check if it's a formula)
+ * @param products - Array of products for the selected product name
+ * @returns Object containing average price, price level, and comparison items
+ */
+export function calculateAveragePrice(totalPrice: string, totalQuantity: string, products: ProductType[]) {
+  const totalPriceNumeric = isFormula(totalPrice) ? 0 : parseFormattedNumber(totalPrice)
+  const totalQuantityNumeric = isFormula(totalQuantity) ? 0 : parseFormattedNumber(totalQuantity)
+  const isValidPrice = !isNaN(totalPriceNumeric)
+  const isValidFormula = !(isNaN(totalQuantityNumeric) || totalQuantityNumeric === 0) || isFormula(totalQuantity)
+  if (!(isValidPrice && isValidFormula)) {
+    return []
+  }
+
+  const formulaContent = totalQuantity.substring(1).trim()
+  const parsedTotalQuantityFormula = parseUnit(formulaContent)
+  const { unit: totalQuantityFormulaUnit } = parsedTotalQuantityFormula
+
+  const formulas = new Set<string>()
+  const hitUnits = new Set<string>()
+  COMMON_FORMULAS.forEach(([_, formula]) => {
+    const formulaContent = formula.substring(1).trim()
+    const parsedFormula = parseUnit(formulaContent)
+    const { unit: formulaUnit } = parsedFormula
+    if (formulaUnit !== totalQuantityFormulaUnit) {
+      return
+    }
+
+    formulas.add(formulaContent)
+    hitUnits.add(formulaUnit)
+  })
+
+  // Calculate comparison items for each product
+  const comparisons: ComparisonItem[] = []
+  for (const p of products) {
+    // Calculate actual quantity for each item (if formula calculation is needed)
+    let itemActualQuantity = totalQuantityNumeric // Use globally calculated quantity by default
+
+    const { unitConversions, unit, unitBestPrice } = p
+    if (isFormula(totalQuantity)) {
+      if (!(unitConversions?.length && unit)) {
+        continue
+      }
+
+      const filteredUnitConversions = unitConversions.filter((u) => {
+        const parsedFormula = parseUnit(u)
+        return !hitUnits.has(parsedFormula.unit)
+      })
+
+      const mergedUnitConversions = [...filteredUnitConversions, ...formulas]
+      const formula = totalQuantity.substring(1).trim()
+      const itemCalculatedQuantity = calculateFormulaQuantity(`= ${formula}`, unit, mergedUnitConversions, unit)
+
+      if (!isNaN(itemCalculatedQuantity)) {
+        itemActualQuantity = itemCalculatedQuantity
+      }
+    }
+
+    const itemAvgPrice = totalPriceNumeric / itemActualQuantity
+    const level = calculatePriceLevel(itemAvgPrice, unitBestPrice)
+    comparisons.push({ ...p, level, quantity: itemActualQuantity })
+  }
+
+  return comparisons
 }

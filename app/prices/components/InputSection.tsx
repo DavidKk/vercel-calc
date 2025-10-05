@@ -26,14 +26,6 @@ export interface InputSectionProps {
   onTotalQuantityChange: (value: string, numericValue: number) => void
   /** Callback function to clear all inputs */
   onClear: () => void
-  // /** Calculated average price */
-  // averagePrice?: number | null
-  // /** Price level based on comparison */
-  // priceLevel?: PriceLevel | null
-  /** Whether to disable the save button */
-  // disableSave?: boolean
-  /** Whether the save operation is in progress */
-  // saving?: boolean
   /** Whether to support formula input */
   supportFormula?: boolean
 }
@@ -53,35 +45,27 @@ export function InputSection({
   onTotalPriceChange,
   onTotalQuantityChange,
   onClear,
-  // averagePrice,
-  // priceLevel,
-  // disableSave,
-  // saving = false,
   supportFormula = false,
 }: InputSectionProps) {
+  const { name, unit } = selectedProductType
   const productOptions = useMemo(() => {
     const nameSet = new Set(productTypes.map((t) => t.name))
     const names = Array.from(nameSet)
     return names.map((name) => ({ value: name, label: name }))
   }, [productTypes])
 
-  // const disabled = disableSave || (averagePrice === null && priceLevel === null)
-  const { name, unit } = selectedProductType
-
   return (
     <div className="bg-gray-900 rounded-lg p-4 h-full">
       <div className="flex flex-col gap-4 h-full">
-        <SearchableSelect value={name} options={productOptions} onChange={onProductChange} clearable={false} size="md" />
+        <div className="flex gap-2 mt-auto">
+          <SearchableSelect value={name} options={productOptions} onChange={onProductChange} clearable={false} size="md" />
+          <Button className="w-1/3" onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" fullWidth />
+        </div>
 
         {/* Input field for total price */}
         <NumberInput value={totalPrice} unit="¥" onChange={onTotalPriceChange} />
-
         {/* Input field for total quantity */}
         <NumberInput value={totalQuantity} unit={unit} supportFormula={supportFormula} onChange={onTotalQuantityChange} />
-
-        <div className="flex gap-2 mt-auto">
-          <Button onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" fullWidth />
-        </div>
       </div>
     </div>
   )

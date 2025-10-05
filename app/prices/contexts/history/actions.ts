@@ -18,9 +18,17 @@ export async function saveHistoryToLocalStorage(history: HistoryRecord[]) {
   localStorage.setItem('history', JSON.stringify(history))
 }
 
-export async function addHistoryToLocalStorage(history: HistoryRecord) {
+export async function addHistoryToLocalStorage(history: Omit<HistoryRecord, 'id'>) {
   const currentHistory = await getHistoryListFromLocalStorage()
-  currentHistory.push(history)
+
+  // Generate incremental ID
+  const maxId = currentHistory.length > 0 ? Math.max(...currentHistory.map((h) => h.id)) : 0
+  const recordWithId: HistoryRecord = {
+    ...history,
+    id: maxId + 1,
+  }
+
+  currentHistory.push(recordWithId)
   await saveHistoryToLocalStorage(currentHistory)
   return currentHistory
 }

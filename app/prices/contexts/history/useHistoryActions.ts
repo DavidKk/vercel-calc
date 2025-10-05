@@ -39,7 +39,7 @@ export function useHistoryActions() {
     }
   }, [])
 
-  const [addToHistory, loadingAddToHistory, errorAddToHistory] = useAction(async (record: HistoryRecord) => {
+  const [addToHistory, loadingAddToHistory, errorAddToHistory] = useAction(async (record: Omit<HistoryRecord, 'id'>) => {
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
       const updatedHistory = useLocalStorage ? await addHistoryToLocalStorage(record) : await addHistoryItem(record)

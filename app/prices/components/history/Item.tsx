@@ -65,12 +65,12 @@ export function Item({ record, onDelete, loading }: ItemProps) {
           <div className="inline-flex flex-wrap items-center gap-x-2">
             <span className="text-white text-lg font-medium break-all">
               <b className="text-sm">¥</b>
-              {formatNumberWithCommas(record.unitPrice, 2)}
+              {formatNumberWithCommas(record.totalPrice, 2)}
             </span>
             <span className="text-gray-400 text-xs break-all">({record.unit})</span>
             <span className="text-gray-400 text-xs break-all">
               = <b className="text-xxs">¥</b>
-              {formatNumberWithCommas(record.unitPrice, 2)} / {formatNumberWithCommas(record.quantity)}
+              {formatNumberWithCommas(record.totalPrice, 2)} / {formatNumberWithCommas(record.totalQuantity)}
             </span>
           </div>
 

@@ -45,8 +45,8 @@ function dedupeAndInsert(newRecord: HistoryRecord, current: HistoryRecord[]): Hi
 
     return (
       a.productType === b.productType &&
-      a.unitPrice === b.unitPrice &&
-      a.quantity === b.quantity &&
+      a.totalPrice === b.totalPrice &&
+      a.totalQuantity === b.totalQuantity &&
       a.unit === b.unit &&
       a.averagePrice === b.averagePrice &&
       a.priceLevel === b.priceLevel &&
@@ -130,13 +130,21 @@ export async function modifyHistory(id: number, updates: Partial<HistoryRecord>)
 }
 
 /** Add new history record with per-day per-product per-brand lowest price dedupe */
-export async function addHistoryItem(newRecord: HistoryRecord, currentHistory?: HistoryRecord[]) {
+export async function addHistoryItem(newRecord: Omit<HistoryRecord, 'id'>, currentHistory?: HistoryRecord[]) {
   if (!(await validateCookie())) {
     throw new Error('Not authorized')
   }
 
   const history = currentHistory && currentHistory.length ? currentHistory : await getHistoryFromGist()
-  const updatedHistory = dedupeAndInsert(newRecord, history)
+
+  // Generate incremental ID
+  const maxId = history.length > 0 ? Math.max(...history.map((h) => h.id)) : 0
+  const recordWithId: HistoryRecord = {
+    ...newRecord,
+    id: maxId + 1,
+  }
+
+  const updatedHistory = dedupeAndInsert(recordWithId, history)
   await saveHistoryToGist(updatedHistory)
   return updatedHistory
 }
