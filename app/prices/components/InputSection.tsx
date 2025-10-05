@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
-import { BackspaceIcon, CheckIcon } from '@heroicons/react/24/solid'
+import { BackspaceIcon } from '@heroicons/react/24/solid'
 import type { ProductType } from '@/app/actions/prices/product'
 import SearchableSelect from '@/components/SearchableSelect'
-import type { PriceLevel } from '@/app/prices/types'
-import { NumberInput } from './NumberInput'
+import { COMMON_FORMULAS } from '@/app/prices/constants/formulas'
+import { parseUnit } from '@/utils/format'
+import { NumberInput, type Suggestion } from './NumberInput'
 import { Button } from './Button'
+import { isFormula } from '../types'
 
 /**
  * Props for the InputSection component
@@ -54,6 +56,85 @@ export function InputSection({
     return names.map((name) => ({ value: name, label: name }))
   }, [productTypes])
 
+  // Generate suggestions based on current unit and products
+  const quantitySuggestions = useMemo(() => {
+    if (!unit) return []
+
+    const suggestions: Suggestion[] = []
+
+    // Check if the current input is a pure number (not a formula)
+    const isPureNumber = totalQuantity && !isFormula(totalQuantity)
+    // Extract the numeric value from the input
+    let inputNumber = ''
+    if (isPureNumber) {
+      // Remove commas and other formatting to get the pure number
+      inputNumber = totalQuantity.replace(/[^\d.-]/g, '')
+    }
+
+    // Add common formulas that match the current unit
+    const formulaConversions: string[] = []
+    for (const [sourceUnit, formula] of COMMON_FORMULAS) {
+      if (sourceUnit === unit) {
+        formulaConversions.push(formula)
+      }
+    }
+
+    // Add unit conversions from products only if there's no corresponding formula
+    const productConversionsSet = new Set<string>()
+    for (const p of productTypes) {
+      if (p.unit === unit && p.unitConversions) {
+        for (const conversion of p.unitConversions) {
+          productConversionsSet.add(conversion)
+        }
+      }
+    }
+    const productConversions = Array.from(productConversionsSet)
+
+    // Use a single loop to filter and push suggestions
+    for (const conversion of productConversions) {
+      // Check if there's already a formula with this conversion
+      const hasCorrespondingFormula = formulaConversions.some((formula) => formula.includes(conversion) || conversion.includes(formula.replace(/^=\s*/, '')))
+
+      // Skip conversion if there's a corresponding formula
+      if (hasCorrespondingFormula) {
+        continue
+      }
+
+      let formattedConversion = `= ${conversion}`
+
+      // If input is a pure number, replace the number in the conversion
+      if (isPureNumber && inputNumber) {
+        // Replace the first number in the conversion with the input number
+        formattedConversion = `= ${conversion}`.replace(/\d[\d,.]*/, inputNumber)
+      }
+
+      // Add indicator for custom product conversions
+      const labeledConversion = `${formattedConversion} (Custom)`
+      suggestions.push({
+        label: labeledConversion,
+        value: formattedConversion,
+      })
+    }
+
+    // Add formula conversions with proper formatting (no label needed for common formulas)
+    for (const formula of formulaConversions) {
+      let formattedFormula = isFormula(formula) ? formula : `= ${formula}`
+
+      // If input is a pure number, replace the number in the formula
+      if (isPureNumber && inputNumber) {
+        // Replace the first number in the formula with the input number
+        formattedFormula = formattedFormula.replace(/\d[\d,.]*/, inputNumber)
+      }
+
+      suggestions.push({
+        label: formattedFormula,
+        value: formattedFormula,
+      })
+    }
+
+    return suggestions
+  }, [productTypes, unit, totalQuantity])
+
   return (
     <div className="bg-gray-900 rounded-lg p-4 h-full">
       <div className="flex flex-col gap-4 h-full">
@@ -64,8 +145,9 @@ export function InputSection({
 
         {/* Input field for total price */}
         <NumberInput value={totalPrice} unit="¥" onChange={onTotalPriceChange} />
-        {/* Input field for total quantity */}
-        <NumberInput value={totalQuantity} unit={unit} supportFormula={supportFormula} onChange={onTotalQuantityChange} />
+
+        {/* Input field for total quantity with suggestions */}
+        <NumberInput value={totalQuantity} unit={unit} supportFormula={supportFormula} suggestions={quantitySuggestions} onChange={onTotalQuantityChange} />
       </div>
     </div>
   )
