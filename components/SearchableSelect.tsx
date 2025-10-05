@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useMemo } from 'react'
 import classNames from 'classnames'
 import { fuzzyMatch } from '@/utils/fuzzyMatch'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
+import { useIsMobile } from '@/hooks/useMobile'
 
 export interface Option {
   value: any
@@ -30,6 +31,7 @@ export default function SearchableSelect(props: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const selectRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const isMobile = useIsMobile()
 
   // Filter options based on search term using fuzzy matching with useMemo
   const filteredOptions = useMemo(() => {
@@ -63,10 +65,14 @@ export default function SearchableSelect(props: SearchableSelectProps) {
 
   // Focus input when dropdown opens
   useEffect(() => {
+    if (isMobile) {
+      return
+    }
+
     if (isOpen && inputRef.current) {
       inputRef.current.focus()
     }
-  }, [isOpen])
+  }, [isOpen, isMobile])
 
   const handleOptionSelect = (optionValue: any) => {
     setSelectedOption(optionValue)
@@ -183,13 +189,25 @@ export default function SearchableSelect(props: SearchableSelectProps) {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search..."
-                className={classNames('w-full', 'px-3', 'focus:outline-none', 'focus:ring-1', 'focus:ring-blue-500', 'bg-gray-800', 'text-white', 'rounded-md', {
-                  'text-sm': size === 'sm',
-                  'py-1': size === 'sm',
-                  'text-base': size === 'md',
-                  'py-2': size === 'md' || size === 'lg',
-                  'text-lg': size === 'lg',
-                })}
+                className={classNames(
+                  'w-full',
+                  'px-3',
+                  'focus:outline-none',
+                  'focus:ring-1',
+                  'focus:ring-blue-500',
+                  'bg-gray-800',
+                  'text-white',
+                  'rounded-md',
+                  'border',
+                  'border-gray-600',
+                  {
+                    'text-sm': size === 'sm',
+                    'py-1': size === 'sm',
+                    'text-base': size === 'md',
+                    'py-2': size === 'md' || size === 'lg',
+                    'text-lg': size === 'lg',
+                  }
+                )}
                 onClick={(e) => e.stopPropagation()}
               />
             </div>

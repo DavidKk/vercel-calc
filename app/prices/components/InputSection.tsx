@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { BackspaceIcon } from '@heroicons/react/24/solid'
+import { BackspaceIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon } from '@heroicons/react/24/solid'
 import type { ProductType } from '@/app/actions/prices/product'
 import SearchableSelect from '@/components/SearchableSelect'
 import { COMMON_FORMULAS } from '@/app/prices/constants/formulas'
@@ -29,6 +29,10 @@ export interface InputSectionProps {
   onTotalQuantityChange: (value: string, numericValue: number) => void
   /** Callback function to clear all inputs */
   onClear: () => void
+  /** Callback function to toggle fullscreen */
+  onToggleFullscreen?: () => void
+  /** Whether fullscreen is active */
+  isFullscreen?: boolean
   /** Whether to support formula input */
   supportFormula?: boolean
 }
@@ -48,6 +52,8 @@ export function InputSection({
   onTotalPriceChange,
   onTotalQuantityChange,
   onClear,
+  onToggleFullscreen,
+  isFullscreen,
   supportFormula = false,
 }: InputSectionProps) {
   const { name, unit } = selectedProductType
@@ -56,6 +62,11 @@ export function InputSection({
     const names = Array.from(nameSet)
     return names.map((name) => ({ value: name, label: name }))
   }, [productTypes])
+
+  // Check if either price or quantity has a value
+  const hasValue = useMemo(() => {
+    return totalPrice.trim() !== '' || totalQuantity.trim() !== ''
+  }, [totalPrice, totalQuantity])
 
   // Generate suggestions based on current unit and products
   const quantitySuggestions = useMemo(() => {
@@ -142,18 +153,44 @@ export function InputSection({
 
   return (
     <div className="bg-gray-900 rounded-lg p-4 h-full">
-      <div className="flex flex-col gap-4 h-full">
+      <form className="flex flex-col gap-4 h-full">
         <div className="flex gap-2 mt-auto">
           <SearchableSelect value={name} options={productOptions} onChange={onProductChange} clearable={false} size="md" />
-          <Button className="w-1/3" onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" />
+          {(() => {
+            if (hasValue) {
+              return <Button className="w-1/4" onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" type="button" />
+            }
+
+            return (
+              <Button
+                className="w-1/4"
+                onClick={onToggleFullscreen}
+                variant="secondary"
+                size="lg"
+                icon={isFullscreen ? <ArrowsPointingInIcon className="h-6 w-6" /> : <ArrowsPointingOutIcon className="h-6 w-6" />}
+                title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                type="button"
+              />
+            )
+          })()}
         </div>
 
         {/* Input field for total price */}
-        <NumberInput value={totalPrice} unit="¥" onChange={onTotalPriceChange} />
+        <NumberInput name="totalPrice" inputMode="decimal" value={totalPrice} unit="¥" onChange={onTotalPriceChange} enterKeyHint="next" tabIndex={1} />
 
         {/* Input field for total quantity with suggestions */}
-        <NumberInput value={totalQuantity} unit={unit} supportFormula={supportFormula} suggestions={quantitySuggestions} onChange={onTotalQuantityChange} />
-      </div>
+        <NumberInput
+          name="totalQuantity"
+          inputMode="decimal"
+          value={totalQuantity}
+          unit={unit}
+          supportFormula={supportFormula}
+          suggestions={quantitySuggestions}
+          onChange={onTotalQuantityChange}
+          enterKeyHint="done"
+          tabIndex={2}
+        />
+      </form>
     </div>
   )
 }

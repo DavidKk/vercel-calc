@@ -20,7 +20,8 @@ interface RootLayoutProps {
 
 export default async function RootLayout(props: Readonly<RootLayoutProps>) {
   const { children } = props
-  const language = (await headers()).get('accept-language') || 'en'
+  const hmap = await headers()
+  const language = hmap.get('accept-language') || 'en'
 
   return (
     <html lang="en">

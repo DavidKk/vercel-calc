@@ -14,6 +14,7 @@ import type { ComparisonItem } from './components/result/List'
 import { useHistoryActions } from './contexts/history'
 import { isFormula } from './types'
 import { COMMON_FORMULAS } from './constants/formulas'
+import { useFullscreen } from '@/hooks/useFullscreen'
 
 export interface CalculatorProps {
   productTypes: ProductType[]
@@ -23,6 +24,8 @@ export interface CalculatorProps {
 export function Calculator({ productTypes, initialProductType }: CalculatorProps) {
   const { history, loading, loadHistoryByProduct, addToHistory } = useHistoryActions()
   const notification = useNotification()
+  const { isFullscreen, toggleFullscreen, elementRef } = useFullscreen<HTMLDivElement>()
+
   /** Name of the currently selected product */
   const defualtProductName = initialProductType?.name || productTypes[0]?.name || ''
   const [selectedProductName, setSelectedProductName] = useLocalStorageState('product-name', () => defualtProductName)
@@ -32,6 +35,11 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
   const [totalQuantity, setTotalQuantity] = useState<string>('')
   /** Array of comparison items for displaying product comparisons */
   const [comparisons, setComparisons] = useState<ComparisonItem[]>([])
+
+  // Check if either price or quantity has a value
+  const hasValue = useMemo(() => {
+    return totalPrice.trim() !== '' || totalQuantity.trim() !== ''
+  }, [totalPrice, totalQuantity])
 
   const handleProductChange = (value: any) => {
     setSelectedProductName(String(value))
@@ -114,7 +122,7 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
   }
 
   return (
-    <div className="flex flex-col w-full max-w-4xl bg-black rounded-lg p-2 md:p-4">
+    <div ref={elementRef} className="flex flex-col w-full max-w-4xl bg-black rounded-lg p-2 md:p-4">
       <div className="flex flex-col md:flex-row gap-4 flex-1">
         <div className="flex flex-col md:w-1/2">
           <div className="mb-3 flex-shrink-0">
@@ -127,6 +135,8 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
               onTotalPriceChange={(value) => setTotalPrice(value)}
               onTotalQuantityChange={(value) => setTotalQuantity(value)}
               onClear={clearAll}
+              onToggleFullscreen={() => toggleFullscreen()}
+              isFullscreen={isFullscreen}
               supportFormula={hasUnitConversions}
             />
           </div>

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import classNames from 'classnames'
 import { formatNumberWithCommas, parseFormattedNumber } from '@/utils/format'
 import { isFormula } from '../types'
@@ -9,7 +9,7 @@ export interface Suggestion {
   value: string
 }
 
-export interface NumberInputProps {
+export interface NumberInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value: string
   unit: string
   supportFormula?: boolean
@@ -17,13 +17,16 @@ export interface NumberInputProps {
   onChange: (value: string, numericValue: number) => void
   onFocus?: () => void
   onBlur?: () => void
+  enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send'
+  tabIndex?: number
 }
 
 export function NumberInput(props: NumberInputProps) {
-  const { value, unit, supportFormula = true, suggestions = [], onChange, onFocus, onBlur } = props
+  const { value, unit, supportFormula = true, suggestions = [], onChange, onFocus, onBlur, enterKeyHint, tabIndex, ...restProps } = props
   const inputRef = useRef<HTMLInputElement>(null)
   const { error } = useNotification()
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const id = useId()
 
   const isFormulaMode = isFormula(value)
   const displayValue = isFormulaMode ? value.substring(1) : value
@@ -92,6 +95,29 @@ export function NumberInput(props: NumberInputProps) {
     if (isFormulaMode && displayValue === '' && e.key === 'Backspace') {
       onChange('', 0)
     }
+
+    // Handle Enter key based on enterKeyHint
+    if (e.key === 'Enter') {
+      // If enterKeyHint is 'done', blur the input to close keyboard
+      if (enterKeyHint === 'done') {
+        inputRef.current?.blur()
+        e.preventDefault()
+        return
+      }
+
+      // For 'next' or other navigation hints, try to focus next element
+      if (enterKeyHint === 'next') {
+        // Try to focus next element based on tabIndex
+        if (tabIndex !== undefined) {
+          const nextElement = document.querySelector(`input[tabindex="${tabIndex + 1}"]`) as HTMLElement | null
+          if (nextElement) {
+            nextElement.focus()
+            e.preventDefault()
+            return
+          }
+        }
+      }
+    }
   }
 
   const handleFocus = () => {
@@ -116,7 +142,7 @@ export function NumberInput(props: NumberInputProps) {
 
   // Determine if we should show suggestions
   // Only show if there are suggestions, supportFormula is enabled, and the input is empty
-  const shouldShowSuggestions = showSuggestions && supportFormula && suggestions.length > 0 && !value
+  const shouldShowSuggestions = showSuggestions && supportFormula && suggestions.length > 0
 
   return (
     <div className="flex flex-col relative">
@@ -129,17 +155,20 @@ export function NumberInput(props: NumberInputProps) {
 
         <div className="flex-1 h-full relative">
           <input
+            {...restProps}
+            id={id}
             ref={inputRef}
             className={classNames('bg-transparent text-white font-light focus:outline-none min-w-0 border-0 w-full h-full py-0 px-3 leading-[3rem]', {
               'text-left': isFormulaMode,
               'text-right': !isFormulaMode,
             })}
-            type="text"
             value={displayValue}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onFocus={handleFocus}
             onBlur={handleBlur}
+            enterKeyHint={enterKeyHint}
+            tabIndex={tabIndex}
           />
         </div>
 
