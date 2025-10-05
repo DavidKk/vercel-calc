@@ -41,6 +41,10 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
   const handleProductChange = (value: any) => {
     setSelectedProductName(String(value))
     loadHistoryByProduct(String(value))
+    // Clear the price and quantity input fields when product changes
+    setTotalPrice('')
+    setTotalQuantity('')
+    setComparisons([])
   }
 
   const productsBySelectedName = useMemo(() => {

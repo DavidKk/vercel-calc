@@ -153,11 +153,17 @@ export function InputSection({
     return suggestions
   }, [productTypes, unit, totalQuantity])
 
+  // Handle product change and trigger updates for the input fields
+  const handleProductChange = (value: any) => {
+    // Call the original onProductChange callback
+    onProductChange(value)
+  }
+
   return (
     <div className="bg-gray-900 rounded-lg p-4 h-full">
       <form className="flex flex-col gap-4 h-full">
         <div className="flex gap-2 mt-auto">
-          <SearchableSelect value={name} options={productOptions} onChange={onProductChange} clearable={false} size="md" />
+          <SearchableSelect value={name} options={productOptions} onChange={handleProductChange} clearable={false} size="md" />
           {(() => {
             if (hasValue) {
               return <Button className="w-1/4" onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" type="button" />
