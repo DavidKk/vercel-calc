@@ -2,6 +2,7 @@ import type { PriceLevel } from '@/app/prices/types'
 import { isFormula } from '@/app/prices/types'
 import { PriceLevelDisplay } from '../PriceLevelDisplay'
 import { PriceDisplay } from '../PriceDisplay'
+import { formatNumberWithCommas } from '@/utils/format'
 
 /**
  * Comparison item interface for product comparison
@@ -74,31 +75,28 @@ export function List({ items, onBrandSelect, quantity, unit, totalPriceNumeric }
           >
             <div className="flex flex-col flex-1">
               <div className="text-white text-base font-medium">
-                {item.name}
-                {item.brand && <span className="text-gray-400 text-sm font-normal">&nbsp;-&nbsp;{item.brand}</span>}
+                {item.name} {item.brand && <span className="text-gray-400 text-sm font-normal">&nbsp;-&nbsp;{item.brand}</span>}
               </div>
               {item.remark && <div className="text-gray-400 text-xs">{item.remark}</div>}
 
-              <div className="flex items-center gap-x-1 text-white text-lg font-light">
-                <PriceDisplay amount={item.unitBestPrice} size="md" />
+              <div className="flex items-center gap-x-1 text-white font-light">
+                <PriceDisplay amount={averagePrice} size="lg" />
                 {item.quantity ? (
                   <span className="text-gray-400 text-sm">
-                    {item.quantity}
-                    {unit}
+                    {formatNumberWithCommas(item.quantity)} {unit}
                   </span>
                 ) : null}
               </div>
 
               <div className="flex items-center flex-wrap gap-x-1">
                 <span className="text-gray-400 text-sm">
-                  <PriceDisplay amount={averagePrice} size="sm" />
+                  <PriceDisplay amount={item.unitBestPrice} size="md" />
                 </span>
-                {unit && (
+                {unit ? (
                   <span className="text-gray-400 text-sm">
-                    {actualQuantity}
-                    {unit}
+                    {formatNumberWithCommas(actualQuantity)} {unit}
                   </span>
-                )}
+                ) : null}
               </div>
             </div>
 
