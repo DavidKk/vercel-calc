@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
 import classNames from 'classnames'
+import { useEffect, useRef } from 'react'
+
 import type { SuggestionOption } from './Input'
 
 export interface SuggestionsProps {

@@ -1,5 +1,6 @@
 import { createMCPHttpServer } from '@/initializer/mcp'
 import { version } from '@/package.json'
+
 import calculatePrice from './calculatePrice'
 import listProducts from './listProducts'
 

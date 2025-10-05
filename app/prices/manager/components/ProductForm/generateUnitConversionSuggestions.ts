@@ -1,5 +1,5 @@
-import { formatNumber, parseUnit, parseUnitConversion } from '@/utils/format'
 import type { ProductType } from '@/app/actions/prices/product'
+import { formatNumber, parseUnit, parseUnitConversion } from '@/utils/format'
 
 // Generate unit conversion suggestions based on existing products
 export function generateUnitConversionSuggestions(unit: string, products: ProductType[]) {

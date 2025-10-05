@@ -1,9 +1,11 @@
 import { XMarkIcon } from '@heroicons/react/24/outline'
+
 import { PriceLevelDisplay } from '@/app/prices/components/PriceLevelDisplay'
-import { formatNumberWithCommas } from '@/utils/format'
-import { Spinner } from '@/components/Spinner'
 import { useHistoryActions } from '@/app/prices/contexts/history'
 import { useNotification } from '@/components/Notification/useNotification'
+import { Spinner } from '@/components/Spinner'
+import { formatNumberWithCommas } from '@/utils/format'
+
 import type { HistoryRecord } from './types'
 
 export interface ItemProps {
@@ -32,7 +34,7 @@ export function Item({ record, onDelete, loading }: ItemProps) {
     }
   }
 
-  const { productType, brand, remark: recordRemark, unit, averagePrice, totalPrice, totalQuantity, priceLevel, unitBestPrice, timestamp } = record
+  const { productType, brand, remark: recordRemark, unit, totalPrice, totalQuantity, unitPrice, priceLevel, unitBestPrice, timestamp } = record
   const displayProductName = brand ? `${productType} - ${brand}` : productType
   const remark = recordRemark || record?.product?.remark
 
@@ -66,7 +68,7 @@ export function Item({ record, onDelete, loading }: ItemProps) {
           <div className="inline-flex flex-wrap items-center gap-x-2">
             <span className="text-white text-lg font-medium break-all">
               <b className="text-sm">¥</b>
-              {formatNumberWithCommas(averagePrice, 2)}
+              {formatNumberWithCommas(unitPrice, 2)}
             </span>
             <span className="text-gray-400 text-xs break-all">({unit})</span>
             <span className="text-gray-400 text-xs break-all">

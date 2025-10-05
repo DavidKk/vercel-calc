@@ -1,12 +1,15 @@
-import type { Metadata } from 'next'
+import './globals.css'
+
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import './globals.css'
-import { NotificationProvider } from '@/components/Notification/useNotification'
-import { Nav } from './Nav'
-import Footer from './Footer'
-import { LanguageProvider } from '@/contexts/language'
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
+
+import { NotificationProvider } from '@/components/Notification/useNotification'
+import { LanguageProvider } from '@/contexts/language'
+
+import Footer from './Footer'
+import { Nav } from './Nav'
 
 export const metadata: Metadata = {
   title: 'Open APIs',

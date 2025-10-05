@@ -1,8 +1,10 @@
-import { useState, useRef, useMemo, useEffect } from 'react'
 import { useClickAway } from 'ahooks'
 import classNames from 'classnames'
-import { Suggestions } from './Suggestions'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
 import { fuzzyMatch } from '@/utils/fuzzyMatch'
+
+import { Suggestions } from './Suggestions'
 
 export interface SuggestionOption {
   label: string

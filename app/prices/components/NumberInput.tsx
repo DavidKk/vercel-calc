@@ -1,8 +1,10 @@
-import { useId, useRef, useState } from 'react'
 import classNames from 'classnames'
-import { formatNumberWithCommas, parseFormattedNumber } from '@/utils/format'
-import { isFormula } from '../types'
+import { useId, useRef, useState } from 'react'
+
 import { useNotification } from '@/components/Notification'
+import { formatNumberWithCommas, parseFormattedNumber } from '@/utils/format'
+
+import { isFormula } from '../types'
 
 export interface Suggestion {
   label: string

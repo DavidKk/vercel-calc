@@ -1,4 +1,5 @@
 import type { ProductType } from '@/app/actions/prices/product'
+
 import { PriceDisplay } from '../PriceDisplay'
 
 export interface PlaceholderProps {

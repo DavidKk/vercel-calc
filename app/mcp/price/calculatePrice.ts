@@ -1,8 +1,9 @@
 import { z } from 'zod'
-import { tool } from '@/initializer/mcp'
+
 import { getPriceLevelText } from '@/app/prices/types'
-import { calculatePriceLevel } from '@/utils/price'
+import { tool } from '@/initializer/mcp'
 import { safeDivide } from '@/utils/calc'
+import { calculatePriceLevel } from '@/utils/price'
 
 const name = 'calculate_price'
 const description = 'Calculate price and determine price level'

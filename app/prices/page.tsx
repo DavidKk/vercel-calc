@@ -1,10 +1,11 @@
-import { generate } from '@/components/Meta'
-import { getAllProducts, type ProductType } from '@/app/actions/prices/product'
 import { getHistoryList } from '@/app/actions/prices/history'
-import { HistoryProvider } from './contexts/history'
-import { Calculator } from './Calculator'
-import { validateCookie } from '@/services/auth/access'
+import { getAllProducts, type ProductType } from '@/app/actions/prices/product'
+import { generate } from '@/components/Meta'
 import { AccessProvider } from '@/contexts/access'
+import { validateCookie } from '@/services/auth/access'
+
+import { Calculator } from './Calculator'
+import { HistoryProvider } from './contexts/history'
 
 const { generateMetadata } = generate({
   title: 'Price Calculator',

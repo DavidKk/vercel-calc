@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useAction } from '@/hooks/useAction'
+
+import { addHistoryItem, clearHistory, getHistoryList, modifyHistory, removeHistory } from '@/app/actions/prices/history'
 import type { HistoryRecord } from '@/app/prices/components/history/types'
-import { getHistoryList, addHistoryItem, removeHistory, modifyHistory, clearHistory } from '@/app/actions/prices/history'
 import { useAccess } from '@/contexts/access'
-import { getHistoryListFromLocalStorage, addHistoryToLocalStorage, removeHistoryFromLocalStorage, modifyHistoryFromLocalStorage, clearHistoryFromLocalStorage } from './actions'
+import { useAction } from '@/hooks/useAction'
+
+import { addHistoryToLocalStorage, clearHistoryFromLocalStorage, getHistoryListFromLocalStorage, modifyHistoryFromLocalStorage, removeHistoryFromLocalStorage } from './actions'
 import { useHistoryContext } from './HistoryContext'
 
 // Define a type without the timestamp and id fields

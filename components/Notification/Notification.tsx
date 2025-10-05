@@ -1,8 +1,9 @@
 'use client'
 
-import { forwardRef, useCallback, useImperativeHandle, useRef, useState, type ForwardedRef } from 'react'
+import { type ForwardedRef, forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
+
 import { NotificationItem } from './NotificationItem'
-import type { NotificationProps, ShowOptions, NotificationItem as NotificationItemType, NotificationImperativeHandler } from './types'
+import type { NotificationImperativeHandler, NotificationItem as NotificationItemType, NotificationProps, ShowOptions } from './types'
 
 let notificationId = 0
 

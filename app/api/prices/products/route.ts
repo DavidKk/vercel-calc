@@ -1,7 +1,7 @@
+import { createProduct, deleteProduct, getAllProducts, getProductById, updateProduct } from '@/app/actions/prices/product'
 import { api } from '@/initializer/controller'
-import { withAuthHandler } from '@/initializer/wrapper'
 import { jsonInvalidParameters } from '@/initializer/response'
-import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct } from '@/app/actions/prices/product'
+import { withAuthHandler } from '@/initializer/wrapper'
 
 /**
  * Get products

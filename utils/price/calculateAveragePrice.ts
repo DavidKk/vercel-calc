@@ -3,10 +3,11 @@ import type { ComparisonItem } from '@/app/prices/components/result/List'
 import { COMMON_FORMULAS } from '@/app/prices/constants/formulas'
 import { isFormula } from '@/app/prices/types'
 import { convertChineseNumeralsInString, parseFormattedNumber, parseUnit } from '@/utils/format'
+
+import { safeDivide } from '../calc'
+import { batchProcessUnitConversionNumericPart } from '../price'
 import { calculateFormulaQuantity } from './calculateFormulaQuantity'
 import { calculatePriceLevel } from './calculatePriceLevel'
-import { batchProcessUnitConversionNumericPart } from '../price'
-import { safeDivide } from '../calc'
 
 /**
  * Calculate average price and comparisons for products

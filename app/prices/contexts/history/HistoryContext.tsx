@@ -1,9 +1,11 @@
 'use client'
 
 import React, { createContext, useContext, useReducer } from 'react'
-import type { HistoryState, HistoryAction } from './types'
-import { historyReducer } from './reducer'
+
 import type { HistoryRecord } from '@/app/prices/components/history/types'
+
+import { historyReducer } from './reducer'
+import type { HistoryAction, HistoryState } from './types'
 
 interface HistoryContextType extends HistoryState {
   dispatch: React.Dispatch<HistoryAction>

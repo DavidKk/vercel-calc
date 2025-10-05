@@ -1,6 +1,7 @@
 import { z } from 'zod'
-import { tool } from '@/initializer/mcp'
+
 import { getAllProducts } from '@/app/actions/prices/product'
+import { tool } from '@/initializer/mcp'
 
 const name = 'list_products'
 const description = 'Get all products'

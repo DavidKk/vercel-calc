@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import MobileDetect from 'mobile-detect'
+import { useEffect, useState } from 'react'
 2
 export function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false)

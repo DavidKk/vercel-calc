@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+
 import type locals from '@/constants/locals'
 import { getLanguageText } from '@/constants/locals'
 

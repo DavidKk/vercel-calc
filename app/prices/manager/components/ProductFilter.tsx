@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { BackspaceIcon } from '@heroicons/react/24/solid'
+import { useEffect, useState } from 'react'
 
 export interface ProductFilterProps {
   onFilterChange: (filterText: string) => void

@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import classNames from 'classnames'
 import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import classNames from 'classnames'
+import { useEffect, useRef, useState } from 'react'
 
 export interface Option {
   value: any

@@ -1,7 +1,7 @@
-import type { PriceLevel } from '@/app/prices/types'
-import { PriceLevelDisplay } from '@/app/prices/components/PriceLevelDisplay'
 import { PriceDisplay } from '@/app/prices/components/PriceDisplay'
+import { PriceLevelDisplay } from '@/app/prices/components/PriceLevelDisplay'
 import { Quantity } from '@/app/prices/components/Quantity'
+import type { PriceLevel } from '@/app/prices/types'
 import { safeDivide } from '@/utils/calc'
 
 /**

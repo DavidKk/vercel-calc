@@ -1,5 +1,5 @@
-import { calculateAveragePrice } from '@/utils/price'
 import type { ProductType } from '@/app/actions/prices/product'
+import { calculateAveragePrice } from '@/utils/price'
 
 describe('calculateAveragePrice', () => {
   const mockProducts: ProductType[] = [

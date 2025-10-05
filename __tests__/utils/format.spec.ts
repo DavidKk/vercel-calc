@@ -1,13 +1,13 @@
 import {
-  formatProjectName,
-  formatNumberWithCommas,
-  parseFormattedNumber,
-  formatNumber,
-  parseUnit,
-  parseUnitConversion,
+  convertChineseNumeralsInString,
   convertChineseToArabic,
   extractChineseNumerals,
-  convertChineseNumeralsInString,
+  formatNumber,
+  formatNumberWithCommas,
+  formatProjectName,
+  parseFormattedNumber,
+  parseUnit,
+  parseUnitConversion,
 } from '@/utils/format'
 
 describe('formatProjectName', () => {

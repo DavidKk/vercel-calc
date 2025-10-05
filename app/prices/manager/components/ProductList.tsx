@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
 import { PlusIcon } from '@heroicons/react/24/outline'
+import { useState } from 'react'
+
 import type { ProductType } from '@/app/actions/prices/product'
-import { ProductItem } from './ProductItem'
 import { Button } from '@/app/prices/components/Button'
 import { Spinner } from '@/components/Spinner'
+
 import { ProductFilter } from './ProductFilter'
+import { ProductItem } from './ProductItem'
 
 export interface ProductListProps {
   products: ProductType[]

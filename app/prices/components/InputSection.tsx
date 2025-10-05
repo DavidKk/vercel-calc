@@ -1,13 +1,15 @@
+import { ArrowsPointingInIcon, ArrowsPointingOutIcon, BackspaceIcon } from '@heroicons/react/24/solid'
 import { useMemo } from 'react'
-import { BackspaceIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon } from '@heroicons/react/24/solid'
+
 import type { ProductType } from '@/app/actions/prices/product'
-import SearchableSelect from '@/components/SearchableSelect'
 import { COMMON_FORMULAS } from '@/app/prices/constants/formulas'
+import SearchableSelect from '@/components/SearchableSelect'
 import { parseUnit } from '@/utils/format'
 import { processUnitConversionNumericPart } from '@/utils/price'
-import { NumberInput, type Suggestion } from './NumberInput'
-import { Button } from './Button'
+
 import { isFormula } from '../types'
+import { Button } from './Button'
+import { NumberInput, type Suggestion } from './NumberInput'
 
 /**
  * Props for the InputSection component

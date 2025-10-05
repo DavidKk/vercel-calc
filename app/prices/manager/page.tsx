@@ -1,8 +1,9 @@
-import { ProductManager } from './ProductManager'
-import { generate } from '@/components/Meta'
-import { checkAccess } from '@/services/auth/access'
 import { getAllProducts } from '@/app/actions/prices/product'
 import { ProductProvider } from '@/app/prices/contexts/product'
+import { generate } from '@/components/Meta'
+import { checkAccess } from '@/services/auth/access'
+
+import { ProductManager } from './ProductManager'
 
 const { generateMetadata } = generate({
   title: 'Product Manager',

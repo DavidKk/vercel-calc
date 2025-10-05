@@ -1,4 +1,5 @@
 import { XMarkIcon } from '@heroicons/react/24/outline'
+
 import type { NotificationItem as NotificationItemType } from './types'
 
 interface NotificationItemProps {

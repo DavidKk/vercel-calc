@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+
 import type { ProductType } from '@/app/actions/prices/product'
 import { useProductActions, useProductContext } from '@/app/prices/contexts/product'
 import { useNotification } from '@/components/Notification/useNotification'
-import { ProductList } from './components/ProductList'
+
 import { ProductForm } from './components/ProductForm'
+import { ProductList } from './components/ProductList'
 
 export function ProductManager() {
   const notification = useNotification()

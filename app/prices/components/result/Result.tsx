@@ -1,7 +1,8 @@
 import type { ProductType } from '@/app/actions/prices/product'
+
+import type { ComparisonItem } from './List'
 import { List } from './List'
 import { Placeholder } from './Placeholder'
-import type { ComparisonItem } from './List'
 
 /**
  * Props for the Result component

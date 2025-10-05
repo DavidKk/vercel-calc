@@ -1,21 +1,22 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+
 import type { ProductType } from '@/app/actions/prices/product'
 import { useNotification } from '@/components/Notification/useNotification'
-import { useLocalStorageState } from '@/hooks/useLocalStorageState'
 import { useFullscreen } from '@/hooks/useFullscreen'
-import { parseUnit } from '@/utils/format'
+import { useLocalStorageState } from '@/hooks/useLocalStorageState'
+import { parseFormattedNumber, parseUnit } from '@/utils/format'
 import { calculateAveragePrice } from '@/utils/price'
-import { safeDivide } from '@/utils/calc'
-import { InputSection } from './components/InputSection'
-import { Result } from './components/result/Result'
+
 import { List } from './components/history'
 import { toProductSnapshot } from './components/history/types'
+import { InputSection } from './components/InputSection'
 import type { ComparisonItem } from './components/result/List'
-import { useHistoryActions } from './contexts/history'
+import { Result } from './components/result/Result'
 import { COMMON_FORMULAS } from './constants/formulas'
-
+import { useHistoryActions } from './contexts/history'
+import { isFormula } from './types'
 
 export interface CalculatorProps {
   productTypes: ProductType[]
@@ -84,15 +85,15 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
   const handleBrandSelect = async (item: ComparisonItem) => {
     const { level: priceLevel, brand, unitCurrentPrice, quantity, unitBestPrice } = item
     const product = toProductSnapshot(productsBySelectedName.find((p) => p.brand === item.brand) ?? productsBySelectedName[0])
-    const averagePrice = safeDivide(unitCurrentPrice, quantity)
+    const totalPriceNumeric = isFormula(totalPrice) ? 0 : parseFormattedNumber(totalPrice)
 
     try {
       await addToHistory({
         productType: selectedProductName,
-        totalPrice: unitCurrentPrice,
+        totalPrice: totalPriceNumeric,
         totalQuantity: quantity,
         unit: selectedUnitStr,
-        averagePrice,
+        unitPrice: unitCurrentPrice,
         priceLevel,
         unitBestPrice,
         brand,

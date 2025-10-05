@@ -1,3 +1,3 @@
 export { default } from './Notification'
-export type { NotificationProps, ShowOptions, NotificationItem, NotificationImperativeHandler } from './types'
-export { useNotification, NotificationProvider, NotificationContext } from './useNotification'
+export type { NotificationImperativeHandler, NotificationItem, NotificationProps, ShowOptions } from './types'
+export { NotificationContext, NotificationProvider, useNotification } from './useNotification'

@@ -1,8 +1,9 @@
 'use client'
 
 import React from 'react'
-import { useNotification } from '@/components/Notification/useNotification'
+
 import type { ShowOptions } from '@/components/Notification/types'
+import { useNotification } from '@/components/Notification/useNotification'
 
 export default function NotificationTestPage() {
   const { show, success, error, warning, info } = useNotification()

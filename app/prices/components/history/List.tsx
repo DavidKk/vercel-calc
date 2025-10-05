@@ -1,6 +1,7 @@
+import { Spinner } from '@/components/Spinner'
+
 import { Item } from './Item'
 import type { HistoryRecord } from './types'
-import { Spinner } from '@/components/Spinner'
 
 export interface ListProps {
   history: HistoryRecord[]

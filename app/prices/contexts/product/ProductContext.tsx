@@ -1,9 +1,11 @@
 'use client'
 
 import React, { createContext, useContext, useReducer } from 'react'
-import type { ProductState, ProductAction } from './types'
-import { productReducer } from './reducer'
+
 import type { ProductType } from '@/app/actions/prices/product'
+
+import { productReducer } from './reducer'
+import type { ProductAction, ProductState } from './types'
 
 interface ProductContextType extends ProductState {
   dispatch: React.Dispatch<ProductAction>

@@ -1,8 +1,9 @@
 'use client'
 
-import React, { createContext, useRef, useEffect, useState } from 'react'
-import type { NotificationImperativeHandler } from './types'
+import React, { createContext, useEffect, useRef, useState } from 'react'
+
 import Notification from './Notification'
+import type { NotificationImperativeHandler } from './types'
 
 const defaultHandler: NotificationImperativeHandler = {
   show: (message: string) => {

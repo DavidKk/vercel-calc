@@ -1,9 +1,10 @@
 'use client'
 
-import { useAction } from '@/hooks/useAction'
-import { useProductContext } from './ProductContext'
 import type { ProductType } from '@/app/actions/prices/product'
-import { getAllProducts, createProduct, updateProduct, deleteProduct } from '@/app/actions/prices/product'
+import { createProduct, deleteProduct, getAllProducts, updateProduct } from '@/app/actions/prices/product'
+import { useAction } from '@/hooks/useAction'
+
+import { useProductContext } from './ProductContext'
 
 export function useProductActions() {
   const { products, loading, dispatch } = useProductContext()

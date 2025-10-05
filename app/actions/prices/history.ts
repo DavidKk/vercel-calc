@@ -1,8 +1,9 @@
 'use server'
 
 import type { HistoryRecord } from '@/app/prices/components/history/types'
+import { isSameRecord } from '@/app/prices/components/history/types'
 import { validateCookie } from '@/services/auth/access'
-import { readGistFile, writeGistFile, getGistInfo } from '@/services/gist'
+import { getGistInfo, readGistFile, writeGistFile } from '@/services/gist'
 
 const HISTORY_FILE_NAME = 'history.json'
 
@@ -33,35 +34,7 @@ function getComparableProductId(r: HistoryRecord) {
 
 function dedupeAndInsert(newRecord: HistoryRecord, current: HistoryRecord[]): HistoryRecord[] {
   // identical record check
-  const isSameRecord = (a: HistoryRecord, b: HistoryRecord) => {
-    const productEqual = (() => {
-      if (!a.product && !b.product) return true
-      if (!a.product || !b.product) return false
-      return (
-        a.product.id === b.product.id &&
-        a.product.name === b.product.name &&
-        a.product.unit === b.product.unit &&
-        a.product.unitBestPrice === b.product.unitBestPrice &&
-        a.product.brand === b.product.brand &&
-        a.product.skuId === b.product.skuId
-      )
-    })()
-
-    return (
-      a.productType === b.productType &&
-      a.totalPrice === b.totalPrice &&
-      a.totalQuantity === b.totalQuantity &&
-      a.unit === b.unit &&
-      a.averagePrice === b.averagePrice &&
-      a.priceLevel === b.priceLevel &&
-      a.timestamp === b.timestamp &&
-      a.unitBestPrice === b.unitBestPrice &&
-      a.brand === b.brand &&
-      productEqual
-    )
-  }
-
-  const existingIndex = current.findIndex((r) => isSameRecord(r, newRecord))
+  const existingIndex = current.findIndex((r) => isSameRecord(r, newRecord, { compareUnitPrice: false }))
   if (existingIndex !== -1) {
     const existing = current[existingIndex]
     const withoutExisting = current.filter((_, idx) => idx !== existingIndex)

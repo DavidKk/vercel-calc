@@ -1,9 +1,9 @@
-import { api } from '@/initializer/controller'
-import { jsonInvalidParameters } from '@/initializer/response'
 import type { PriceLevel } from '@/app/prices/types'
 import { getPriceLevelText } from '@/app/prices/types'
-import { calculatePriceLevel } from '@/utils/price'
+import { api } from '@/initializer/controller'
+import { jsonInvalidParameters } from '@/initializer/response'
 import { safeDivide } from '@/utils/calc'
+import { calculatePriceLevel } from '@/utils/price'
 
 export interface CalculateResult {
   productName: string

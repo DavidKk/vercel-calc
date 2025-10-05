@@ -1,5 +1,6 @@
 import classNames from 'classnames'
-import { PriceLevel, getPriceLevelText } from '@/app/prices/types'
+
+import { getPriceLevelText, PriceLevel } from '@/app/prices/types'
 import { useLanguage } from '@/contexts/language'
 
 export interface PriceLevelDisplayProps {

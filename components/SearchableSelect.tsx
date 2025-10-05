@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState, useRef, useMemo } from 'react'
-import classNames from 'classnames'
-import { fuzzyMatch } from '@/utils/fuzzyMatch'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
+import classNames from 'classnames'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
 import { useIsMobile } from '@/hooks/useMobile'
+import { fuzzyMatch } from '@/utils/fuzzyMatch'
 
 export interface Option {
   value: any

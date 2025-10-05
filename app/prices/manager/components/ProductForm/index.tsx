@@ -1,14 +1,16 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
-import { CheckIcon, XMarkIcon, ArrowPathIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid'
+import { ArrowPathIcon, CheckIcon, PlusIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/solid'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
 import type { ProductType } from '@/app/actions/prices/product'
 import { Button } from '@/app/prices/components/Button'
+import { useProductActions } from '@/app/prices/contexts/product'
 import { useNotification } from '@/components/Notification/useNotification'
 import { Spinner } from '@/components/Spinner'
-import { useProductActions } from '@/app/prices/contexts/product'
+import { validateProductName, validateProductUnitPrice, validateRemark, validateUnit } from '@/utils/validation'
+
 import { ProductFormInput } from '../ProductFormInput'
-import { validateProductName, validateProductUnitPrice, validateUnit, validateRemark } from '@/utils/validation'
 import { createProductUnitConversionValidator } from './createProductUnitConversionValidator'
 import { generateUnitConversionSuggestions } from './generateUnitConversionSuggestions'
 

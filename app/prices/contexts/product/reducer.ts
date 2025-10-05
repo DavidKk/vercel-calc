@@ -1,4 +1,4 @@
-import type { ProductState, ProductAction } from './types'
+import type { ProductAction, ProductState } from './types'
 
 export function productReducer(state: ProductState, action: ProductAction): ProductState {
   switch (action.type) {

@@ -1,4 +1,4 @@
-import type { HistoryState, HistoryAction } from './types'
+import type { HistoryAction, HistoryState } from './types'
 
 export function historyReducer(state: HistoryState, action: HistoryAction): HistoryState {
   switch (action.type) {
