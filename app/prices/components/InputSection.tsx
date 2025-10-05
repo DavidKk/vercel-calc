@@ -141,7 +141,7 @@ export function InputSection({
       <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-2 mt-auto">
           <SearchableSelect value={name} options={productOptions} onChange={onProductChange} clearable={false} size="md" />
-          <Button className="w-1/4" onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" fullWidth />
+          <Button className="w-1/3" onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" fullWidth />
         </div>
 
         {/* Input field for total price */}

@@ -11,6 +11,7 @@ export interface Option {
 }
 
 export interface SearchableSelectProps {
+  className?: string
   value?: any
   placeholder?: string
   options?: Option[]
@@ -22,7 +23,7 @@ export interface SearchableSelectProps {
 }
 
 export default function SearchableSelect(props: SearchableSelectProps) {
-  const { options = [], value, placeholder, onChange, clearable = true, size = 'sm', searchable = true } = props
+  const { className, options = [], value, placeholder, onChange, clearable = true, size = 'sm', searchable = true } = props
 
   const [selectedOption, setSelectedOption] = useState(value)
   const [searchTerm, setSearchTerm] = useState('')
@@ -91,7 +92,7 @@ export default function SearchableSelect(props: SearchableSelectProps) {
   return (
     <div
       ref={selectRef}
-      className={classNames('relative', 'w-full', 'flex', 'flex-nowrap', {
+      className={classNames('relative', 'w-full', 'flex', 'flex-nowrap', className, {
         rounded: size === 'sm',
         'rounded-md': size === 'md',
         'rounded-lg': size === 'lg',
