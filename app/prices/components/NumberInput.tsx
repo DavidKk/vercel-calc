@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import classNames from 'classnames'
-import { convertChineseToArabic, extractChineseNumerals, formatNumberWithCommas, parseFormattedNumber } from '@/utils/format'
+import { formatNumberWithCommas, parseFormattedNumber } from '@/utils/format'
 import { isFormula } from '../types'
 import { useNotification } from '@/components/Notification'
 
@@ -30,6 +30,24 @@ export function NumberInput(props: NumberInputProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value
+
+    // In normal mode, only allow digits, commas, periods, and minus sign
+    if (!isFormulaMode) {
+      // Allow empty value
+      if (inputValue === '') {
+        onChange('', 0)
+        return
+      }
+
+      // Check if the input contains only valid characters for numbers
+      const validNumberPattern = /^[\d.,\-]*$/
+      if (!validNumberPattern.test(inputValue)) {
+        // If it's not a valid number input, show an error and don't update
+        error('Only numbers, commas, periods, and minus sign are allowed')
+        return
+      }
+    }
+
     if (!supportFormula) {
       const numericValue = parseFormattedNumber(inputValue)
       const dotMatch = inputValue.match(/\.+$/)
@@ -104,6 +122,10 @@ export function NumberInput(props: NumberInputProps) {
     inputRef.current?.focus()
   }
 
+  // Determine if we should show suggestions
+  // Only show if there are suggestions, supportFormula is enabled, and the input is empty
+  const shouldShowSuggestions = showSuggestions && supportFormula && suggestions.length > 0 && !value
+
   return (
     <div className="flex flex-col relative">
       <div className="flex items-center box-border w-full h-12 rounded-lg bg-gray-800">
@@ -136,8 +158,8 @@ export function NumberInput(props: NumberInputProps) {
         )}
       </div>
 
-      {/* Suggestions dropdown - positioned below the input without absolute positioning */}
-      {showSuggestions && suggestions.length > 0 && (
+      {/* Suggestions dropdown - only show when there are suggestions and input is empty */}
+      {shouldShowSuggestions && (
         <div className="absolute top-[calc(100%+2px)] mt-1 w-full bg-gray-800 rounded-md shadow-lg overflow-hidden border border-gray-700 z-10">
           <ul className="py-1">
             {suggestions.map((suggestion, index) => (
