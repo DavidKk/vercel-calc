@@ -174,6 +174,8 @@ describe('parseUnit', () => {
     expect(parseUnit('十斤')).toEqual({ number: 10, unit: '斤' })
     expect(parseUnit('一百克')).toEqual({ number: 100, unit: '克' })
     expect(parseUnit('一千零一米')).toEqual({ number: 1001, unit: '米' })
+    expect(parseUnit('两百克')).toEqual({ number: 200, unit: '克' }) // Test for colloquial "两百"
+    expect(parseUnit('两百八十斤')).toEqual({ number: 280, unit: '斤' }) // Test for colloquial "两百八十"
   })
 
   it('should parse Chinese numerals with decimal points and units', () => {
@@ -204,6 +206,7 @@ describe('convertChineseToArabic', () => {
     expect(convertChineseToArabic('零')).toBe(0)
     expect(convertChineseToArabic('一')).toBe(1)
     expect(convertChineseToArabic('二')).toBe(2)
+    expect(convertChineseToArabic('两')).toBe(2) // Test for colloquial "两"
     expect(convertChineseToArabic('三')).toBe(3)
     expect(convertChineseToArabic('四')).toBe(4)
     expect(convertChineseToArabic('五')).toBe(5)
@@ -218,6 +221,12 @@ describe('convertChineseToArabic', () => {
     expect(convertChineseToArabic('十一')).toBe(11)
     expect(convertChineseToArabic('二十')).toBe(20)
     expect(convertChineseToArabic('二十一')).toBe(21)
+    expect(convertChineseToArabic('两')).toBe(2) // Test for colloquial "两"
+    expect(convertChineseToArabic('两百')).toBe(200) // Test for colloquial "两百"
+    expect(convertChineseToArabic('两百八十')).toBe(280) // Test for colloquial "两百八十"
+    expect(convertChineseToArabic('两千')).toBe(2000) // Test for colloquial "两千"
+    expect(convertChineseToArabic('两千零二')).toBe(2002) // Test for colloquial "两千零二"
+    expect(convertChineseToArabic('两千二百')).toBe(2200) // Test for colloquial "两千二百"
     expect(convertChineseToArabic('一百')).toBe(100)
     expect(convertChineseToArabic('一百零一')).toBe(101)
     expect(convertChineseToArabic('一百一十')).toBe(110)

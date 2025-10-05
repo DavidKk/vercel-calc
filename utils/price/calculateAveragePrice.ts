@@ -6,6 +6,7 @@ import { convertChineseNumeralsInString, parseFormattedNumber, parseUnit } from 
 import { calculateFormulaQuantity } from './calculateFormulaQuantity'
 import { calculatePriceLevel } from './calculatePriceLevel'
 import { batchProcessUnitConversionNumericPart } from '../price'
+import { safeDivide } from '../calc'
 
 /**
  * Calculate average price and comparisons for products
@@ -71,7 +72,7 @@ export function calculateAveragePrice(totalPrice: string, totalQuantity: string,
       }
     }
 
-    const itemAvgPrice = totalPriceNumeric / itemActualQuantity
+    const itemAvgPrice = safeDivide(totalPriceNumeric, itemActualQuantity) || 0
     const level = calculatePriceLevel(itemAvgPrice, unitBestPrice)
     comparisons.push({ ...p, level, quantity: itemActualQuantity, unitCurrentPrice: itemAvgPrice })
   }

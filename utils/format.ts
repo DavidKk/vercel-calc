@@ -211,6 +211,7 @@ export function convertChineseToArabic(chineseNumber: string): number {
     零: 0,
     一: 1,
     二: 2,
+    两: 2, // Support for colloquial "两" as 2
     三: 3,
     四: 4,
     五: 5,
@@ -365,7 +366,7 @@ export function extractChineseNumerals(value: string): string {
   }
 
   // Define Chinese numeral characters
-  const chineseNumeralChars = '零一二三四五六七八九十百千万亿点'
+  const chineseNumeralChars = '零一二两三四五六七八九十百千万亿点'
 
   // Extract the Chinese numeral part from the beginning of the string
   let chineseNumeralPart = ''
@@ -393,7 +394,7 @@ export function convertChineseNumeralsInString(value: string): string {
   }
 
   // Define Chinese numeral characters
-  const chineseNumeralChars = '零一二三四五六七八九十百千万亿点'
+  const chineseNumeralChars = '零一二两三四五六七八九十百千万亿点'
 
   let result = ''
   let i = 0
@@ -408,6 +409,20 @@ export function convertChineseNumeralsInString(value: string): string {
       while (j < value.length && chineseNumeralChars.includes(value[j])) {
         chineseNumeralPart += value[j]
         j++
+      }
+
+      // Special handling for "两" when it's likely a unit
+      // If the sequence ends with "两" and the preceding part is a valid number
+      // we should treat "两" as a unit, not as the number 2
+      if (chineseNumeralPart.endsWith('两') && chineseNumeralPart.length > 1) {
+        const numberPart = chineseNumeralPart.substring(0, chineseNumeralPart.length - 1)
+        const numberValue = convertChineseToArabic(numberPart)
+        if (!isNaN(numberValue) && numberValue > 0) {
+          // Treat "两" as a unit
+          result += numberValue.toString() + '两'
+          i = j
+          continue
+        }
       }
 
       // Convert the Chinese numeral to Arabic numeral
