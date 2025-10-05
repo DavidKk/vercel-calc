@@ -150,6 +150,17 @@ describe('parseUnit', () => {
     expect(parseUnit('1000.5g')).toEqual({ number: 1000.5, unit: 'g' })
   })
 
+  it('should parse Chinese numerals with units', () => {
+    expect(parseUnit('十斤')).toEqual({ number: 10, unit: '斤' })
+    expect(parseUnit('一百克')).toEqual({ number: 100, unit: '克' })
+    expect(parseUnit('一千零一米')).toEqual({ number: 1001, unit: '米' })
+  })
+
+  it('should parse Chinese numerals with decimal points and units', () => {
+    expect(parseUnit('一点五公斤')).toEqual({ number: 1.5, unit: '公斤' })
+    expect(parseUnit('一百点二八斤')).toEqual({ number: 100.28, unit: '斤' })
+  })
+
   it('should handle edge cases', () => {
     expect(parseUnit('')).toEqual({ number: 1, unit: '' })
     expect(parseUnit(' ')).toEqual({ number: 1, unit: '' })

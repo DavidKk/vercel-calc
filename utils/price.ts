@@ -138,6 +138,7 @@ export function calculateFormulaQuantity(formula: string, targetUnit: string, un
 export function calculateAveragePrice(totalPrice: string, totalQuantity: string, products: ProductType[]) {
   const totalPriceNumeric = isFormula(totalPrice) ? 0 : parseFormattedNumber(totalPrice)
   const totalQuantityNumeric = isFormula(totalQuantity) ? 0 : parseFormattedNumber(totalQuantity)
+
   const isValidPrice = !isNaN(totalPriceNumeric)
   const isValidFormula = !(isNaN(totalQuantityNumeric) || totalQuantityNumeric === 0) || isFormula(totalQuantity)
   if (!(isValidPrice && isValidFormula)) {

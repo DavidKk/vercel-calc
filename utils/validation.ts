@@ -323,14 +323,14 @@ export function validateChineseNumerals(value: string): true | string {
 
   // Define Chinese numeral characters
   const chineseNumeralChars = '零一二三四五六七八九十百千万亿点'
-  
+
   // Check if all characters are valid Chinese numerals
   for (let i = 0; i < value.length; i++) {
     if (!chineseNumeralChars.includes(value[i])) {
       return 'Value contains invalid Chinese numeral characters'
     }
   }
-  
+
   // Try to convert to verify it's a valid Chinese numeral
   try {
     const result = convertChineseToArabic(value)

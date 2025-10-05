@@ -128,9 +128,10 @@ export function parseUnit(unit: string): { number: number; unit: string } {
 
   // If we have two parts (number and unit separated by space)
   if (parts.length === 2) {
-    // First part should be a number
+    // First part should be a number (could be Chinese numerals)
     const numberPart = parts[0].replace(/,/g, '') // Remove commas
-    const number = parseFloat(numberPart)
+    // Use parseFormattedNumber to handle both Arabic and Chinese numerals
+    const number = parseFormattedNumber(numberPart)
 
     // Second part should be the unit
     const unitPart = parts[1]
@@ -145,6 +146,30 @@ export function parseUnit(unit: string): { number: number; unit: string } {
   // Find where number ends and unit begins
   const cleanInput = parts[0].replace(/,/g, '') // Remove commas
 
+  // First, try to extract Chinese numerals
+  const chinesePart = extractChineseNumerals(cleanInput)
+  if (chinesePart) {
+    // If we found Chinese numerals, convert them to Arabic numerals
+    const chineseValue = convertChineseToArabic(chinesePart)
+    if (!isNaN(chineseValue) && chineseValue !== 0) {
+      // Get the unit part (everything after the Chinese numerals)
+      const unitPart = cleanInput.substring(chinesePart.length)
+      return {
+        number: chineseValue,
+        unit: unitPart || parts[0],
+      }
+    }
+  }
+
+  // Check if the input is just a unit with no number (e.g. "kg")
+  // We do this by checking if the first character is a digit or decimal point
+  if (!/^\d|^\./.test(cleanInput)) {
+    return {
+      number: 1,
+      unit: cleanInput,
+    }
+  }
+
   // Find the boundary between number and unit
   let i = 0
   // Skip digits and decimal point
@@ -156,7 +181,7 @@ export function parseUnit(unit: string): { number: number; unit: string } {
   const unitPart = cleanInput.substring(i)
   const numberPart = cleanInput.substring(0, i)
 
-  const number = parseFloat(numberPart)
+  const number = parseFormattedNumber(numberPart)
 
   return {
     number: isNaN(number) ? 1 : number,
@@ -183,22 +208,22 @@ export function convertChineseToArabic(chineseNumber: string): number {
 
   // Define Chinese numeral mappings
   const chineseNumerals: { [key: string]: number } = {
-    '零': 0,
-    '一': 1,
-    '二': 2,
-    '三': 3,
-    '四': 4,
-    '五': 5,
-    '六': 6,
-    '七': 7,
-    '八': 8,
-    '九': 9,
-    '十': 10,
-    '百': 100,
-    '千': 1000,
-    '万': 10000,
-    '亿': 100000000,
-    '点': -1  // Decimal point marker
+    零: 0,
+    一: 1,
+    二: 2,
+    三: 3,
+    四: 4,
+    五: 5,
+    六: 6,
+    七: 7,
+    八: 8,
+    九: 9,
+    十: 10,
+    百: 100,
+    千: 1000,
+    万: 10000,
+    亿: 100000000,
+    点: -1, // Decimal point marker
   }
 
   // Remove whitespace
@@ -278,7 +303,7 @@ function convertChineseInteger(chineseInteger: string, chineseNumerals: { [key: 
         // Special case: "十" means 10
         stack.push(1)
       }
-      
+
       // Multiply the last number in stack with the unit
       const lastNumber = stack.pop() || 0
       stack.push(lastNumber * value)
@@ -287,7 +312,7 @@ function convertChineseInteger(chineseInteger: string, chineseNumerals: { [key: 
       // Sum all numbers in stack and multiply by this unit
       const sum = stack.reduce((acc, val) => acc + val, 0)
       result += sum * value
-      stack = []  // Reset stack
+      stack = [] // Reset stack
     }
   }
 
@@ -341,10 +366,10 @@ export function extractChineseNumerals(value: string): string {
 
   // Define Chinese numeral characters
   const chineseNumeralChars = '零一二三四五六七八九十百千万亿点'
-  
+
   // Extract the Chinese numeral part from the beginning of the string
   let chineseNumeralPart = ''
-  
+
   for (let i = 0; i < value.length; i++) {
     if (chineseNumeralChars.includes(value[i])) {
       chineseNumeralPart += value[i]
@@ -353,6 +378,6 @@ export function extractChineseNumerals(value: string): string {
       break
     }
   }
-  
+
   return chineseNumeralPart
 }

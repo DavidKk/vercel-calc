@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import classNames from 'classnames'
-import { formatNumberWithCommas, parseFormattedNumber } from '@/utils/format'
+import { convertChineseToArabic, extractChineseNumerals, formatNumberWithCommas, parseFormattedNumber } from '@/utils/format'
 import { isFormula } from '../types'
 import { useNotification } from '@/components/Notification'
 
