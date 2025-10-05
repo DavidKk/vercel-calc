@@ -13,10 +13,6 @@ export interface ResultProps {
   onBrandSelect?: (item: ComparisonItem) => void
   /** Currently selected product */
   selectedProduct?: ProductType | null
-  /** Unit price of the product */
-  totalPriceNumeric?: number
-  /** Quantity input - can be a formula (starts with =) or a regular input */
-  quantity?: string | number
 }
 
 /**
@@ -24,7 +20,7 @@ export interface ResultProps {
  * @param props - Result component props
  * @returns React component for displaying results
  */
-export function Result({ comparisons = [], onBrandSelect, selectedProduct, quantity, totalPriceNumeric }: ResultProps) {
+export function Result({ comparisons = [], onBrandSelect, selectedProduct }: ResultProps) {
   if (!selectedProduct) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 w-full h-full">
@@ -36,7 +32,7 @@ export function Result({ comparisons = [], onBrandSelect, selectedProduct, quant
   if (comparisons.length > 0) {
     return (
       <div className="flex flex-col gap-2 w-full">
-        <List items={comparisons} onBrandSelect={onBrandSelect} totalPriceNumeric={totalPriceNumeric} quantity={quantity} />
+        <List items={comparisons} onBrandSelect={onBrandSelect} />
       </div>
     )
   }

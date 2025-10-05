@@ -266,13 +266,7 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
 
           <div className="flex-1 min-h-0">
             <div className="bg-gray-900 rounded-lg p-2 md:p-4 h-full flex justify-center">
-              <Result
-                comparisons={comparisons}
-                onBrandSelect={handleBrandSelect}
-                selectedProduct={productsBySelectedName[0] || null}
-                quantity={totalQuantity}
-                totalPriceNumeric={totalPriceNumeric}
-              />
+              <Result comparisons={comparisons} onBrandSelect={handleBrandSelect} selectedProduct={productsBySelectedName[0] || null} />
             </div>
           </div>
         </div>

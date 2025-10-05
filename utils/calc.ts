@@ -7,7 +7,7 @@
  */
 export function safeDivide(dividend: number, divisor: number): number {
   if (divisor === 0) {
-    throw new Error('Quantity cannot be zero')
+    return 0
   }
 
   return dividend / divisor

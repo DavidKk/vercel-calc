@@ -3,6 +3,8 @@ import { isFormula } from '@/app/prices/types'
 import { PriceLevelDisplay } from '@/app/prices/components/PriceLevelDisplay'
 import { PriceDisplay } from '@/app/prices/components/PriceDisplay'
 import { Quantity } from '@/app/prices/components/Quantity'
+import { parseUnit } from '@/utils/format'
+import { safeDivide } from '@/utils/calc'
 
 /**
  * Comparison item interface for product comparison
@@ -32,10 +34,6 @@ export interface ListProps {
   items: ComparisonItem[]
   /** Callback function when a brand is selected */
   onBrandSelect?: (item: ComparisonItem) => void
-  /** Quantity input - can be a formula (starts with =) or a regular input */
-  quantity?: string | number
-  /** Unit price of the product */
-  totalPriceNumeric?: number
 }
 
 /**
@@ -43,31 +41,12 @@ export interface ListProps {
  * @param props - List component props
  * @returns React component for displaying a list of products
  */
-export function List({ items, onBrandSelect, quantity, totalPriceNumeric }: ListProps) {
-  // Calculate actual quantity based on whether it's a formula or regular input
-  let actualQuantity: number | null = null
-  if (typeof quantity === 'string' && isFormula(quantity)) {
-    // For formulas, we would need to calculate the actual value
-    // This is just a placeholder - actual formula calculation would happen elsewhere
-    actualQuantity = null // Will be calculated by the parent component
-  } else if (quantity !== undefined) {
-    actualQuantity = Number(quantity)
-  }
-
-  // If we don't have a valid quantity, default to 1
-  if (actualQuantity === null || isNaN(actualQuantity)) {
-    actualQuantity = 1
-  }
-
+export function List({ items, onBrandSelect }: ListProps) {
   return (
     <div className="flex flex-col gap-2 w-full">
       {items.map((item, idx) => {
         const { name, brand, unit, remark, quantity, unitBestPrice, level } = item
-
-        let averagePrice = unitBestPrice
-        if (totalPriceNumeric !== undefined && actualQuantity !== 0) {
-          averagePrice = totalPriceNumeric / actualQuantity
-        }
+        const averagePrice = safeDivide(unitBestPrice, quantity)
 
         return (
           <div
@@ -83,7 +62,7 @@ export function List({ items, onBrandSelect, quantity, totalPriceNumeric }: List
               {remark && <div className="text-gray-400 text-xs">{remark}</div>}
 
               <div className="flex items-center gap-x-2">
-                <PriceDisplay amount={averagePrice} classNName="text-white font-light" size="lg" />
+                <span className="text-white font-light text-lg">{averagePrice ? <PriceDisplay amount={averagePrice} size="lg" /> : <>N/A</>}</span>
                 {quantity && unit && (
                   <span className="text-gray-400 text-sm">
                     (total <Quantity quantity={quantity} unit={unit} />)
