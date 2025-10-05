@@ -32,8 +32,9 @@ export function Item({ record, onDelete, loading }: ItemProps) {
     }
   }
 
-  const displayProductName = record.brand ? `${record.productType} - ${record.brand}` : record.productType
-  const remark = record.remark || record.product?.remark
+  const { productType, brand, remark: recordRemark, unit, averagePrice, totalPrice, totalQuantity, priceLevel, unitBestPrice, timestamp } = record
+  const displayProductName = brand ? `${productType} - ${brand}` : productType
+  const remark = recordRemark || record?.product?.remark
 
   return (
     <div
@@ -65,26 +66,26 @@ export function Item({ record, onDelete, loading }: ItemProps) {
           <div className="inline-flex flex-wrap items-center gap-x-2">
             <span className="text-white text-lg font-medium break-all">
               <b className="text-sm">¥</b>
-              {formatNumberWithCommas(record.totalPrice, 2)}
+              {formatNumberWithCommas(averagePrice, 2)}
             </span>
-            <span className="text-gray-400 text-xs break-all">({record.unit})</span>
+            <span className="text-gray-400 text-xs break-all">({unit})</span>
             <span className="text-gray-400 text-xs break-all">
               = <b className="text-xxs">¥</b>
-              {formatNumberWithCommas(record.totalPrice, 2)} / {formatNumberWithCommas(record.totalQuantity)}
+              {formatNumberWithCommas(totalPrice, 2)} / {formatNumberWithCommas(totalQuantity)}
             </span>
           </div>
 
-          <PriceLevelDisplay priceLevel={record.priceLevel} />
+          <PriceLevelDisplay priceLevel={priceLevel} />
         </div>
 
         <div className="flex justify-between items-center text-gray-500 text-xs">
           <span className="inline-flex gap-x-1">
             Best Price: <b className="text-xxs">¥</b>
-            {formatNumberWithCommas(record.unitBestPrice, 2)}
+            {formatNumberWithCommas(unitBestPrice, 2)}
             &nbsp;
-            {record.unit}
+            {unit}
           </span>
-          <span>{record.timestamp}</span>
+          <span>{timestamp}</span>
         </div>
       </div>
     </div>

@@ -2,6 +2,73 @@
 
 import type { HistoryRecord } from '@/app/prices/components/history/types'
 
+function getComparableBrand(r: HistoryRecord) {
+  return r.brand ?? r.product?.brand ?? undefined
+}
+
+function getComparableProductId(r: HistoryRecord) {
+  return r.product?.id ?? undefined
+}
+
+function dedupeAndInsert(newRecord: HistoryRecord, current: HistoryRecord[]): HistoryRecord[] {
+  // identical record check
+  const isSameRecord = (a: HistoryRecord, b: HistoryRecord) => {
+    const productEqual = (() => {
+      if (!a.product && !b.product) return true
+      if (!a.product || !b.product) return false
+      return (
+        a.product.id === b.product.id &&
+        a.product.name === b.product.name &&
+        a.product.unit === b.product.unit &&
+        a.product.unitBestPrice === b.product.unitBestPrice &&
+        a.product.brand === b.product.brand &&
+        a.product.skuId === b.product.skuId
+      )
+    })()
+
+    return (
+      a.productType === b.productType &&
+      a.totalPrice === b.totalPrice &&
+      a.totalQuantity === b.totalQuantity &&
+      a.unit === b.unit &&
+      a.averagePrice === b.averagePrice &&
+      a.priceLevel === b.priceLevel &&
+      a.timestamp === b.timestamp &&
+      a.unitBestPrice === b.unitBestPrice &&
+      a.brand === b.brand &&
+      productEqual
+    )
+  }
+
+  const existingIndex = current.findIndex((r) => isSameRecord(r, newRecord))
+  if (existingIndex !== -1) {
+    const existing = current[existingIndex]
+    const withoutExisting = current.filter((_, idx) => idx !== existingIndex)
+    return [existing, ...withoutExisting].slice(0, 10)
+  }
+
+  // Check for same product ID on the same day
+  const productId = getComparableProductId(newRecord)
+  const sameDayProductIdIndex = productId ? current.findIndex((r) => r.timestamp === newRecord.timestamp && getComparableProductId(r) === productId) : -1
+
+  if (sameDayProductIdIndex !== -1) {
+    const withoutExisting = current.filter((_, idx) => idx !== sameDayProductIdIndex)
+    return [newRecord, ...withoutExisting].slice(0, 10)
+  }
+
+  // Check for same product type and brand on the same day (fallback)
+  const sameDayProductBrandIndex = current.findIndex(
+    (r) => r.timestamp === newRecord.timestamp && r.productType === newRecord.productType && getComparableBrand(r) === getComparableBrand(newRecord)
+  )
+
+  if (sameDayProductBrandIndex !== -1) {
+    const withoutExisting = current.filter((_, idx) => idx !== sameDayProductBrandIndex)
+    return [newRecord, ...withoutExisting].slice(0, 10)
+  }
+
+  return [newRecord, ...current].slice(0, 10)
+}
+
 export async function getHistoryListFromLocalStorage(productTypeName?: string): Promise<HistoryRecord[]> {
   const history = localStorage.getItem('history')
 
@@ -28,9 +95,9 @@ export async function addHistoryToLocalStorage(history: Omit<HistoryRecord, 'id'
     id: maxId + 1,
   }
 
-  currentHistory.push(recordWithId)
-  await saveHistoryToLocalStorage(currentHistory)
-  return currentHistory
+  const updatedHistory = dedupeAndInsert(recordWithId, currentHistory)
+  await saveHistoryToLocalStorage(updatedHistory)
+  return updatedHistory
 }
 
 export async function removeHistoryFromLocalStorage(id: number) {
@@ -42,7 +109,13 @@ export async function removeHistoryFromLocalStorage(id: number) {
 
 export async function modifyHistoryFromLocalStorage(id: number, updates: Partial<HistoryRecord>) {
   const currentHistory = await getHistoryListFromLocalStorage()
-  const updatedHistory = currentHistory.map((h) => (h.id === id ? { ...h, ...updates } : h))
+  const idx = currentHistory.findIndex((h) => h.id === id)
+  if (idx === -1) return currentHistory
+
+  const updated = { ...currentHistory[idx], ...updates }
+  // re-apply dedupe in case product/brand/date/avg changed
+  const without = currentHistory.filter((_, i) => i !== idx)
+  const updatedHistory = dedupeAndInsert(updated, without)
   await saveHistoryToLocalStorage(updatedHistory)
   return updatedHistory
 }

@@ -27,6 +27,10 @@ function getComparableBrand(r: HistoryRecord) {
   return r.brand ?? r.product?.brand ?? undefined
 }
 
+function getComparableProductId(r: HistoryRecord) {
+  return r.product?.id ?? undefined
+}
+
 function dedupeAndInsert(newRecord: HistoryRecord, current: HistoryRecord[]): HistoryRecord[] {
   // identical record check
   const isSameRecord = (a: HistoryRecord, b: HistoryRecord) => {
@@ -64,6 +68,16 @@ function dedupeAndInsert(newRecord: HistoryRecord, current: HistoryRecord[]): Hi
     return [existing, ...withoutExisting].slice(0, 10)
   }
 
+  // Check for same product ID on the same day
+  const productId = getComparableProductId(newRecord)
+  const sameDayProductIdIndex = productId ? current.findIndex((r) => r.timestamp === newRecord.timestamp && getComparableProductId(r) === productId) : -1
+
+  if (sameDayProductIdIndex !== -1) {
+    const withoutExisting = current.filter((_, idx) => idx !== sameDayProductIdIndex)
+    return [newRecord, ...withoutExisting].slice(0, 10)
+  }
+
+  // Check for same product type and brand on the same day (fallback)
   const sameDayProductBrandIndex = current.findIndex(
     (r) => r.timestamp === newRecord.timestamp && r.productType === newRecord.productType && getComparableBrand(r) === getComparableBrand(newRecord)
   )
