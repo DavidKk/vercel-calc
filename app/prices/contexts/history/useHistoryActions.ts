@@ -8,6 +8,9 @@ import { useAccess } from '@/contexts/access'
 import { getHistoryListFromLocalStorage, addHistoryToLocalStorage, removeHistoryFromLocalStorage, modifyHistoryFromLocalStorage, clearHistoryFromLocalStorage } from './actions'
 import { useHistoryContext } from './HistoryContext'
 
+// Define a type without the timestamp and id fields
+type HistoryRecordInput = Omit<HistoryRecord, 'id' | 'timestamp'>
+
 export function useHistoryActions() {
   const { access } = useAccess()
   const useLocalStorage = !access
@@ -39,7 +42,7 @@ export function useHistoryActions() {
     }
   }, [])
 
-  const [addToHistory, loadingAddToHistory, errorAddToHistory] = useAction(async (record: Omit<HistoryRecord, 'id'>) => {
+  const [addToHistory, loadingAddToHistory, errorAddToHistory] = useAction(async (record: HistoryRecordInput) => {
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
       const updatedHistory = useLocalStorage ? await addHistoryToLocalStorage(record) : await addHistoryItem(record)

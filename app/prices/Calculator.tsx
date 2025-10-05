@@ -4,17 +4,18 @@ import { useState, useEffect, useMemo } from 'react'
 import type { ProductType } from '@/app/actions/prices/product'
 import { useNotification } from '@/components/Notification/useNotification'
 import { useLocalStorageState } from '@/hooks/useLocalStorageState'
-import { parseFormattedNumber, parseUnit } from '@/utils/format'
+import { useFullscreen } from '@/hooks/useFullscreen'
+import { parseUnit } from '@/utils/format'
 import { calculateAveragePrice } from '@/utils/price'
+import { safeDivide } from '@/utils/calc'
 import { InputSection } from './components/InputSection'
 import { Result } from './components/result/Result'
 import { List } from './components/history'
 import { toProductSnapshot } from './components/history/types'
 import type { ComparisonItem } from './components/result/List'
 import { useHistoryActions } from './contexts/history'
-import { isFormula } from './types'
 import { COMMON_FORMULAS } from './constants/formulas'
-import { useFullscreen } from '@/hooks/useFullscreen'
+
 
 export interface CalculatorProps {
   productTypes: ProductType[]
@@ -35,11 +36,6 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
   const [totalQuantity, setTotalQuantity] = useState<string>('')
   /** Array of comparison items for displaying product comparisons */
   const [comparisons, setComparisons] = useState<ComparisonItem[]>([])
-
-  // Check if either price or quantity has a value
-  const hasValue = useMemo(() => {
-    return totalPrice.trim() !== '' || totalQuantity.trim() !== ''
-  }, [totalPrice, totalQuantity])
 
   const handleProductChange = (value: any) => {
     setSelectedProductName(String(value))
@@ -86,29 +82,18 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
   }
 
   const handleBrandSelect = async (item: ComparisonItem) => {
-    const { level: priceLevel, brand, unitBestPrice } = item
-    const totalPriceNumeric = isFormula(totalPrice) ? 0 : parseFormattedNumber(totalPrice)
-    const totalQuantityNumeric = isFormula(totalQuantity) ? 0 : parseFormattedNumber(totalQuantity)
-    const isValidPrice = !isNaN(totalPriceNumeric)
-    const isValidFormula = !(isNaN(totalQuantityNumeric) || totalQuantityNumeric === 0) || isFormula(totalQuantity)
-    if (!(isValidPrice && isValidFormula)) {
-      return []
-    }
-
-    const today = new Date()
-    const timestamp = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')
+    const { level: priceLevel, brand, unitCurrentPrice, quantity, unitBestPrice } = item
     const product = toProductSnapshot(productsBySelectedName.find((p) => p.brand === item.brand) ?? productsBySelectedName[0])
-    const averagePrice = totalPriceNumeric / totalQuantityNumeric
+    const averagePrice = safeDivide(unitCurrentPrice, quantity)
 
     try {
       await addToHistory({
         productType: selectedProductName,
-        totalPrice: totalPriceNumeric,
-        totalQuantity: totalQuantityNumeric,
+        totalPrice: unitCurrentPrice,
+        totalQuantity: quantity,
         unit: selectedUnitStr,
         averagePrice,
         priceLevel,
-        timestamp,
         unitBestPrice,
         brand,
         product,

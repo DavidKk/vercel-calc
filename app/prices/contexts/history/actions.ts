@@ -85,14 +85,20 @@ export async function saveHistoryToLocalStorage(history: HistoryRecord[]) {
   localStorage.setItem('history', JSON.stringify(history))
 }
 
-export async function addHistoryToLocalStorage(history: Omit<HistoryRecord, 'id'>) {
+export async function addHistoryToLocalStorage(history: Omit<HistoryRecord, 'id' | 'timestamp'>) {
   const currentHistory = await getHistoryListFromLocalStorage()
 
   // Generate incremental ID
   const maxId = currentHistory.length > 0 ? Math.max(...currentHistory.map((h) => h.id)) : 0
+
+  // Generate timestamp
+  const today = new Date()
+  const timestamp = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')
+
   const recordWithId: HistoryRecord = {
     ...history,
     id: maxId + 1,
+    timestamp,
   }
 
   const updatedHistory = dedupeAndInsert(recordWithId, currentHistory)

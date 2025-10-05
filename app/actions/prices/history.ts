@@ -144,7 +144,7 @@ export async function modifyHistory(id: number, updates: Partial<HistoryRecord>)
 }
 
 /** Add new history record with per-day per-product per-brand lowest price dedupe */
-export async function addHistoryItem(newRecord: Omit<HistoryRecord, 'id'>, currentHistory?: HistoryRecord[]) {
+export async function addHistoryItem(newRecord: Omit<HistoryRecord, 'id' | 'timestamp'>, currentHistory?: HistoryRecord[]) {
   if (!(await validateCookie())) {
     throw new Error('Not authorized')
   }
@@ -153,9 +153,15 @@ export async function addHistoryItem(newRecord: Omit<HistoryRecord, 'id'>, curre
 
   // Generate incremental ID
   const maxId = history.length > 0 ? Math.max(...history.map((h) => h.id)) : 0
+
+  // Generate timestamp
+  const today = new Date()
+  const timestamp = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')
+
   const recordWithId: HistoryRecord = {
     ...newRecord,
     id: maxId + 1,
+    timestamp,
   }
 
   const updatedHistory = dedupeAndInsert(recordWithId, history)
