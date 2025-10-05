@@ -26,16 +26,14 @@ export interface InputSectionProps {
   onTotalQuantityChange: (value: string, numericValue: number) => void
   /** Callback function to clear all inputs */
   onClear: () => void
-  /** Callback function to save the input data */
-  onSave: () => void
-  /** Calculated average price */
-  averagePrice: number | null
-  /** Price level based on comparison */
-  priceLevel: PriceLevel | null
+  // /** Calculated average price */
+  // averagePrice?: number | null
+  // /** Price level based on comparison */
+  // priceLevel?: PriceLevel | null
   /** Whether to disable the save button */
-  disableSave?: boolean
+  // disableSave?: boolean
   /** Whether the save operation is in progress */
-  saving?: boolean
+  // saving?: boolean
   /** Whether to support formula input */
   supportFormula?: boolean
 }
@@ -55,11 +53,10 @@ export function InputSection({
   onTotalPriceChange,
   onTotalQuantityChange,
   onClear,
-  onSave,
-  averagePrice,
-  priceLevel,
-  disableSave,
-  saving = false,
+  // averagePrice,
+  // priceLevel,
+  // disableSave,
+  // saving = false,
   supportFormula = false,
 }: InputSectionProps) {
   const productOptions = useMemo(() => {
@@ -68,7 +65,7 @@ export function InputSection({
     return names.map((name) => ({ value: name, label: name }))
   }, [productTypes])
 
-  const disabled = disableSave || (averagePrice === null && priceLevel === null)
+  // const disabled = disableSave || (averagePrice === null && priceLevel === null)
   const { name, unit } = selectedProductType
 
   return (
@@ -84,17 +81,6 @@ export function InputSection({
 
         <div className="flex gap-2 mt-auto">
           <Button onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" fullWidth />
-
-          <Button
-            onClick={onSave}
-            disabled={disabled}
-            loading={saving}
-            variant={disabled ? 'secondary' : 'success'}
-            size="lg"
-            icon={<CheckIcon className="h-6 w-6" />}
-            title="Save"
-            fullWidth
-          />
         </div>
       </div>
     </div>

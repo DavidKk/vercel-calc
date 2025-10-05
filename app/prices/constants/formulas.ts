@@ -1,4 +1,3 @@
-import { parseUnit } from '@/utils/format'
 import type { Formula } from '@/app/prices/types'
 
 export type FormulaDefinition = [string, Formula]
@@ -55,25 +54,4 @@ const WEIGHT_FORMULAS: FormulaDefinitions = [
   ['两', '= 0.1 斤'], // 1 liang equals 0.1 jin
 ]
 
-export const COMMON_FORMULAS: FormulaDefinitions = [
-  ...WEIGHT_FORMULAS,
-]
-
-/**
- * Find formulas that involve the current unit
- * 
- * @param currentUnit The unit to match against formulas
- * @param formulas The list of formulas to search through
- * @returns Array of matching formulas where the current unit is either the source or target unit
- */
-export function findFormulasForUnit(currentUnit: string): FormulaDefinitions {
-  return COMMON_FORMULAS.filter(([targetUnit, formula]) => {
-    // Extract the source unit from the formula (everything after '=')
-    const formulaContent = formula.substring(1).trim()
-    const parsedFormula = parseUnit(formulaContent)
-    const formulaUnit = parsedFormula.unit
-    
-    // Return true if current unit matches either the source or target unit
-    return formulaUnit === currentUnit || targetUnit === currentUnit
-  })
-}
+export const COMMON_FORMULAS: FormulaDefinitions = [...WEIGHT_FORMULAS]

@@ -462,8 +462,8 @@ function generateUnitConversionSuggestions(unit: string, products: ProductType[]
 
   // Collect all unit conversions that involve the current unit
   const suggestionsMap = new Map<string, string>()
-
   const hitUnits = new Set<string>()
+
   // First, add suggestions from our constant formulas
   // Add constant formula suggestions
   COMMON_FORMULAS.forEach(([targetUnit, formula]: [string, string]) => {
