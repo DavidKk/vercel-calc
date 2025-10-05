@@ -1,4 +1,4 @@
-import { formatNumberWithCommas, parseFormattedNumber, formatNumber, parseUnit, parseUnitConversion } from '../../utils/format'
+import { formatNumberWithCommas, parseFormattedNumber, formatNumber, parseUnit, parseUnitConversion, convertChineseToArabic, extractChineseNumerals } from '../../utils/format'
 
 describe('formatNumberWithCommas', () => {
   // Test basic integer formatting
@@ -165,5 +165,85 @@ describe('parseUnitConversion', () => {
     expect(parseUnitConversion('kg')).toEqual({ number: 1, unit: 'kg' })
     expect(parseUnitConversion('10 kg')).toEqual({ number: 10, unit: 'kg' })
     expect(parseUnitConversion('100ml')).toEqual({ number: 100, unit: 'ml' })
+  })
+})
+
+describe('convertChineseToArabic', () => {
+  it('should convert simple Chinese numerals to Arabic numerals', () => {
+    expect(convertChineseToArabic('零')).toBe(0)
+    expect(convertChineseToArabic('一')).toBe(1)
+    expect(convertChineseToArabic('二')).toBe(2)
+    expect(convertChineseToArabic('三')).toBe(3)
+    expect(convertChineseToArabic('四')).toBe(4)
+    expect(convertChineseToArabic('五')).toBe(5)
+    expect(convertChineseToArabic('六')).toBe(6)
+    expect(convertChineseToArabic('七')).toBe(7)
+    expect(convertChineseToArabic('八')).toBe(8)
+    expect(convertChineseToArabic('九')).toBe(9)
+  })
+
+  it('should convert complex Chinese numerals to Arabic numerals', () => {
+    expect(convertChineseToArabic('十')).toBe(10)
+    expect(convertChineseToArabic('十一')).toBe(11)
+    expect(convertChineseToArabic('二十')).toBe(20)
+    expect(convertChineseToArabic('二十一')).toBe(21)
+    expect(convertChineseToArabic('一百')).toBe(100)
+    expect(convertChineseToArabic('一百零一')).toBe(101)
+    expect(convertChineseToArabic('一百一十')).toBe(110)
+    expect(convertChineseToArabic('一百二十三')).toBe(123)
+    expect(convertChineseToArabic('一千')).toBe(1000)
+    expect(convertChineseToArabic('一千零一')).toBe(1001)
+    expect(convertChineseToArabic('一千零一十')).toBe(1010)
+    expect(convertChineseToArabic('一千一百')).toBe(1100)
+    expect(convertChineseToArabic('一千二百三十四')).toBe(1234)
+    expect(convertChineseToArabic('一万')).toBe(10000)
+    expect(convertChineseToArabic('一万零一')).toBe(10001)
+    expect(convertChineseToArabic('一万零一百')).toBe(10100)
+    expect(convertChineseToArabic('一万一千')).toBe(11000)
+    expect(convertChineseToArabic('一万一千一百一十一')).toBe(11111)
+  })
+
+  it('should handle numbers with multiple zeros', () => {
+    expect(convertChineseToArabic('一千零零一')).toBe(1001)
+    expect(convertChineseToArabic('一万零零零一')).toBe(10001)
+    // In Chinese numerals, trailing zeros after a unit are ignored
+    expect(convertChineseToArabic('一百零零')).toBe(100)
+    expect(convertChineseToArabic('一千零零')).toBe(1000)
+  })
+
+  it('should handle decimal numbers', () => {
+    expect(convertChineseToArabic('一点五')).toBe(1.5)
+    expect(convertChineseToArabic('一百点二八')).toBe(100.28)
+    expect(convertChineseToArabic('零点一二')).toBe(0.12)
+    expect(convertChineseToArabic('十点五')).toBe(10.5)
+    expect(convertChineseToArabic('一百二十三点四五')).toBe(123.45)
+  })
+
+  it('should handle edge cases', () => {
+    expect(convertChineseToArabic('')).toBe(0)
+    expect(convertChineseToArabic('零零零')).toBe(0)
+  })
+})
+
+describe('extractChineseNumerals', () => {
+  it('should extract Chinese numerals from strings', () => {
+    expect(extractChineseNumerals('十一斤')).toBe('十一')
+    expect(extractChineseNumerals('一百点二八斤')).toBe('一百点二八')
+    expect(extractChineseNumerals('零公斤')).toBe('零')
+    expect(extractChineseNumerals('一千零一米')).toBe('一千零一')
+    expect(extractChineseNumerals('一万零零零一克')).toBe('一万零零零一')
+  })
+
+  it('should return empty string when no Chinese numerals found', () => {
+    expect(extractChineseNumerals('')).toBe('')
+    expect(extractChineseNumerals('kg')).toBe('')
+    expect(extractChineseNumerals('123')).toBe('')
+    expect(extractChineseNumerals('abc')).toBe('')
+  })
+
+  it('should handle edge cases', () => {
+    expect(extractChineseNumerals('十')).toBe('十')
+    expect(extractChineseNumerals('十kg')).toBe('十')
+    expect(extractChineseNumerals('一百零一  ')).toBe('一百零一')
   })
 })

@@ -172,3 +172,187 @@ export function parseUnit(unit: string): { number: number; unit: string } {
 export function parseUnitConversion(conversion: string): { number: number; unit: string } {
   return parseUnit(conversion)
 }
+
+/**
+ * Convert Chinese numerals to Arabic numerals
+ * @param chineseNumber The Chinese numeral string (e.g. "一千零一" or "一百点二八")
+ * @returns The corresponding Arabic numeral
+ */
+export function convertChineseToArabic(chineseNumber: string): number {
+  if (!chineseNumber) return 0
+
+  // Define Chinese numeral mappings
+  const chineseNumerals: { [key: string]: number } = {
+    '零': 0,
+    '一': 1,
+    '二': 2,
+    '三': 3,
+    '四': 4,
+    '五': 5,
+    '六': 6,
+    '七': 7,
+    '八': 8,
+    '九': 9,
+    '十': 10,
+    '百': 100,
+    '千': 1000,
+    '万': 10000,
+    '亿': 100000000,
+    '点': -1  // Decimal point marker
+  }
+
+  // Remove whitespace
+  const cleanInput = chineseNumber.trim()
+
+  // Handle special case for "零"
+  if (cleanInput === '零') return 0
+
+  // Handle simple case for single digit numbers
+  if (cleanInput.length === 1 && chineseNumerals[cleanInput] !== undefined && chineseNumerals[cleanInput] < 10) {
+    return chineseNumerals[cleanInput]
+  }
+
+  // Check if there's a decimal point
+  const pointIndex = cleanInput.indexOf('点')
+  let integerPart = cleanInput
+  let decimalPart = ''
+
+  if (pointIndex !== -1) {
+    integerPart = cleanInput.substring(0, pointIndex)
+    decimalPart = cleanInput.substring(pointIndex + 1)
+  }
+
+  // Convert integer part
+  let integerResult = 0
+  if (integerPart) {
+    integerResult = convertChineseInteger(integerPart, chineseNumerals)
+  }
+
+  // Convert decimal part
+  let decimalResult = 0
+  if (decimalPart) {
+    decimalResult = convertChineseDecimal(decimalPart, chineseNumerals)
+  }
+
+  // Combine integer and decimal parts
+  return integerResult + decimalResult
+}
+
+/**
+ * Convert Chinese integer part to Arabic numeral
+ * @param chineseInteger The Chinese integer string
+ * @param chineseNumerals The mapping of Chinese numerals
+ * @returns The corresponding Arabic integer
+ */
+function convertChineseInteger(chineseInteger: string, chineseNumerals: { [key: string]: number }): number {
+  if (!chineseInteger) return 0
+
+  // Handle special case - if the string is all zeros, return 0
+  if (/^零+$/.test(chineseInteger)) return 0
+
+  // For handling multiple zeros, we need to process the string more carefully
+  // Let's use a stack-based approach
+  let stack: number[] = []
+  let result = 0
+
+  for (let i = 0; i < chineseInteger.length; i++) {
+    const char = chineseInteger[i]
+    const value = chineseNumerals[char]
+
+    if (value === undefined) {
+      // Invalid character
+      return 0
+    }
+
+    if (value === -1) {
+      // Decimal point, should not appear in integer part
+      break
+    }
+
+    if (value < 10) {
+      // It's a digit (0-9)
+      stack.push(value)
+    } else if (value === 10 || value === 100 || value === 1000) {
+      // It's a unit (十, 百, 千)
+      if (stack.length === 0) {
+        // Special case: "十" means 10
+        stack.push(1)
+      }
+      
+      // Multiply the last number in stack with the unit
+      const lastNumber = stack.pop() || 0
+      stack.push(lastNumber * value)
+    } else if (value === 10000 || value === 100000000) {
+      // It's a larger unit (万, 亿)
+      // Sum all numbers in stack and multiply by this unit
+      const sum = stack.reduce((acc, val) => acc + val, 0)
+      result += sum * value
+      stack = []  // Reset stack
+    }
+  }
+
+  // Add any remaining values in stack
+  result += stack.reduce((acc, val) => acc + val, 0)
+
+  return result
+}
+
+/**
+ * Convert Chinese decimal part to Arabic decimal
+ * @param chineseDecimal The Chinese decimal string
+ * @param chineseNumerals The mapping of Chinese numerals
+ * @returns The corresponding Arabic decimal (e.g. 0.28 for "二八")
+ */
+function convertChineseDecimal(chineseDecimal: string, chineseNumerals: { [key: string]: number }): number {
+  if (!chineseDecimal) return 0
+
+  let decimalStr = '0.'
+
+  for (let i = 0; i < chineseDecimal.length; i++) {
+    const char = chineseDecimal[i]
+    const value = chineseNumerals[char]
+
+    if (value === undefined || value === -1) {
+      // Invalid character or decimal point
+      return 0
+    }
+
+    if (value < 10) {
+      // It's a digit (0-9)
+      decimalStr += value.toString()
+    } else {
+      // Units are not allowed in decimal part
+      return 0
+    }
+  }
+
+  return parseFloat(decimalStr)
+}
+
+/**
+ * Extract Chinese numerals from a string
+ * @param value The string to extract from (e.g. "十一斤" -> "十一")
+ * @returns The extracted Chinese numerals or empty string if none found
+ */
+export function extractChineseNumerals(value: string): string {
+  if (!value || value.trim() === '') {
+    return ''
+  }
+
+  // Define Chinese numeral characters
+  const chineseNumeralChars = '零一二三四五六七八九十百千万亿点'
+  
+  // Extract the Chinese numeral part from the beginning of the string
+  let chineseNumeralPart = ''
+  
+  for (let i = 0; i < value.length; i++) {
+    if (chineseNumeralChars.includes(value[i])) {
+      chineseNumeralPart += value[i]
+    } else {
+      // Stop at the first non-Chinese numeral character
+      break
+    }
+  }
+  
+  return chineseNumeralPart
+}

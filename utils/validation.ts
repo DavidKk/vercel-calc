@@ -1,3 +1,5 @@
+import { convertChineseToArabic } from './format'
+
 /**
  * 校验必填字段
  * @param value 输入值
@@ -307,4 +309,36 @@ export function validateRemark(remark: string): true | string {
   }
 
   return true
+}
+
+/**
+ * Check if a string contains valid Chinese numerals
+ * @param value The string to check
+ * @returns True if the string contains valid Chinese numerals, string with error message otherwise
+ */
+export function validateChineseNumerals(value: string): true | string {
+  if (!value || value.trim() === '') {
+    return 'Value is required'
+  }
+
+  // Define Chinese numeral characters
+  const chineseNumeralChars = '零一二三四五六七八九十百千万亿点'
+  
+  // Check if all characters are valid Chinese numerals
+  for (let i = 0; i < value.length; i++) {
+    if (!chineseNumeralChars.includes(value[i])) {
+      return 'Value contains invalid Chinese numeral characters'
+    }
+  }
+  
+  // Try to convert to verify it's a valid Chinese numeral
+  try {
+    const result = convertChineseToArabic(value)
+    if (isNaN(result)) {
+      return 'Value is not a valid Chinese numeral'
+    }
+    return true
+  } catch (e) {
+    return 'Value is not a valid Chinese numeral'
+  }
 }
