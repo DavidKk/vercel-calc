@@ -13,7 +13,7 @@ import { toProductSnapshot } from './components/history/types'
 import type { ComparisonItem } from './components/result/List'
 import { useHistoryActions } from './contexts/history'
 import { isFormula, type PriceLevel } from './types'
-import { WEIGHT_FORMULAS } from './constants/formulas'
+import { COMMON_FORMULAS } from './constants/formulas'
 import { parseUnit } from '@/utils/format'
 
 export interface CalculatorProps {
@@ -78,7 +78,7 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
 
     const formulas = new Set<string>()
     const hitUnits = new Set<string>()
-    WEIGHT_FORMULAS.forEach(([_, formula]) => {
+    COMMON_FORMULAS.forEach(([_, formula]) => {
       const formulaContent = formula.substring(1).trim()
       const parsedFormula = parseUnit(formulaContent)
       const { unit: formulaUnit } = parsedFormula

@@ -10,7 +10,7 @@ import { useProductActions } from '@/app/prices/contexts/product'
 import { ProductFormInput } from './ProductFormInput'
 import { validateProductName, validateProductUnitPrice, validateUnit, validateUnitConversion, validateRemark } from '@/utils/validation'
 import { parseUnit, parseUnitConversion, formatNumber } from '@/utils/format'
-import { WEIGHT_FORMULAS } from '@/app/prices/constants/formulas'
+import { COMMON_FORMULAS } from '@/app/prices/constants/formulas'
 
 export interface ProductFormProps {
   product?: ProductType | null
@@ -466,7 +466,7 @@ function generateUnitConversionSuggestions(unit: string, products: ProductType[]
   const hitUnits = new Set<string>()
   // First, add suggestions from our constant formulas
   // Add constant formula suggestions
-  WEIGHT_FORMULAS.forEach(([targetUnit, formula]: [string, string]) => {
+  COMMON_FORMULAS.forEach(([targetUnit, formula]: [string, string]) => {
     // Extract the source unit from the formula (everything after '=')
     const formulaContent = formula.substring(1).trim()
     const parsedFormula = parseUnit(formulaContent)
