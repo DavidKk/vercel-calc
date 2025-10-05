@@ -1,4 +1,5 @@
 import {
+  formatProjectName,
   formatNumberWithCommas,
   parseFormattedNumber,
   formatNumber,
@@ -8,6 +9,16 @@ import {
   extractChineseNumerals,
   convertChineseNumeralsInString,
 } from '../../utils/format'
+
+describe('formatProjectName', () => {
+  it('should format project names correctly', () => {
+    expect(formatProjectName('vercel-app')).toBe('App')
+    expect(formatProjectName('vercel-test-project')).toBe('Test Project')
+    expect(formatProjectName('my-vercel-app')).toBe('My App')
+    expect(formatProjectName('vercel')).toBe('Vercel')
+    expect(formatProjectName('vercel-')).toBe('')
+  })
+})
 
 describe('formatNumberWithCommas', () => {
   // Test basic integer formatting
