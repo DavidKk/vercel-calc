@@ -74,7 +74,8 @@ export function InputSection({
     // Add common formulas that match the current unit
     const formulaConversions: string[] = []
     for (const [sourceUnit, formula] of COMMON_FORMULAS) {
-      if (sourceUnit === unit) {
+      const { unit: finalUnit } = parseUnit(unit)
+      if (sourceUnit === finalUnit) {
         formulaConversions.push(formula)
       }
     }

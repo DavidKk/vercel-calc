@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import type { ProductType } from '@/app/actions/prices/product'
 import { useNotification } from '@/components/Notification/useNotification'
 import { useLocalStorageState } from '@/hooks/useLocalStorageState'
-import { parseFormattedNumber } from '@/utils/format'
+import { parseFormattedNumber, parseUnit } from '@/utils/format'
 import { calculateAveragePrice } from '@/utils/price'
 import { InputSection } from './components/InputSection'
 import { Result } from './components/result/Result'
@@ -13,6 +13,7 @@ import { toProductSnapshot } from './components/history/types'
 import type { ComparisonItem } from './components/result/List'
 import { useHistoryActions } from './contexts/history'
 import { isFormula } from './types'
+import { COMMON_FORMULAS } from './constants/formulas'
 
 export interface CalculatorProps {
   productTypes: ProductType[]
@@ -46,7 +47,18 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
     return types
   }, [productTypes, selectedProductName, defualtProductName])
 
-  const selectedUnit = productsBySelectedName[0]?.unit || (initialProductType?.unit ?? '')
+  const selectedUnitStr = productsBySelectedName[0]?.unit || (initialProductType?.unit ?? '')
+  const { unit: selectedUnit } = parseUnit(selectedUnitStr)
+
+  // Check if there are unit conversions available (either custom or from common formulas)
+  const hasUnitConversions = useMemo(() => {
+    // Check if any product has custom unit conversions
+    const hasCustomConversions = productsBySelectedName.some((p) => p.unitConversions && p.unitConversions.length > 0)
+
+    // Check if the selected unit matches any common formulas
+    const hasCommonFormulaConversions = COMMON_FORMULAS.some(([sourceUnit]) => sourceUnit === selectedUnit)
+    return hasCustomConversions || hasCommonFormulaConversions
+  }, [productsBySelectedName, selectedUnitStr])
 
   useEffect(() => {
     if (selectedProductName && totalPrice && totalQuantity) {
@@ -85,7 +97,7 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
         productType: selectedProductName,
         totalPrice: totalPriceNumeric,
         totalQuantity: totalQuantityNumeric,
-        unit: selectedUnit,
+        unit: selectedUnitStr,
         averagePrice,
         priceLevel,
         timestamp,
@@ -115,7 +127,7 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
               onTotalPriceChange={(value) => setTotalPrice(value)}
               onTotalQuantityChange={(value) => setTotalQuantity(value)}
               onClear={clearAll}
-              supportFormula={productsBySelectedName.some((p) => p.unitConversions && p.unitConversions.length > 0)}
+              supportFormula={hasUnitConversions}
             />
           </div>
 
