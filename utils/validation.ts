@@ -119,10 +119,10 @@ export function validateProductUnitPrice(price: string): true | string {
   // 移除逗号以便解析
   const cleanPrice = price.replace(/,/g, '')
 
-  // 检查小数位数，最多两位小数
+  // 检查小数位数，最多三位小数
   const parts = cleanPrice.split('.')
-  if (parts.length > 1 && parts[1].length > 2) {
-    return 'Price can have at most 2 decimal places'
+  if (parts.length > 1 && parts[1].length > 3) {
+    return 'Price can have at most 3 decimal places'
   }
 
   return true

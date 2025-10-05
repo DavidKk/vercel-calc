@@ -51,6 +51,9 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
   const isEditing = !!product
   const isFormSubmitting = loadingAddProduct || loadingUpdateProduct || loadingRemoveProduct
 
+  // Custom validator for unit conversions that prevents common formulas
+  const unitConversionValidator = useMemo(() => createProductUnitConversionValidator(unit), [unit])
+
   // When product prop changes, update the form fields
   useEffect(() => {
     if (product) {
@@ -173,9 +176,12 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
           conversionForValidation = conversionForValidation.split(' (')[0]
         }
 
-        // Validate the conversion part
-        if (!validateUnitConversion(conversionForValidation)) {
-          notification.error('Unit conversion must be number and unit (e.g., 100ml or 100 ml)')
+        // Validate the conversion part using our custom validator
+        const validation = unitConversionValidator(conversionForValidation)
+        if (validation !== true) {
+          // Extract just the error message part if it's a full message
+          const errorMessage = typeof validation === 'string' ? validation : 'Unit conversion must be number and unit (e.g., 100ml or 100 ml)'
+          notification.error(errorMessage)
           return
         }
 
@@ -372,7 +378,7 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
                     prefix="="
                     value={conversion}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUnitConversionChange(index, e.target.value)}
-                    validator={validateUnitConversion}
+                    validator={unitConversionValidator}
                     placeholder="e.g. 100ml, 1kg"
                     suggestions={unitConversionSuggestions}
                   />
@@ -445,6 +451,44 @@ export function ProductForm({ product, afterSaved, onCancel, showEmptyState = tr
   )
 }
 
+// Factory function that creates a validator for unit conversions
+// Prevents common formulas by pre-calculating target units for the given unit
+function createProductUnitConversionValidator(currentUnit: string) {
+  // Pre-calculate common formula target units for the current unit
+  const commonFormulaTargetUnits = new Set<string>()
+  COMMON_FORMULAS.forEach(([sourceUnit, formula]) => {
+    if (sourceUnit === currentUnit) {
+      // Parse the formula to get the target unit
+      const formulaContent = formula.substring(1).trim() // Remove the '=' prefix
+      const parsedFormula = parseUnit(formulaContent)
+      const formulaTargetUnit = parsedFormula.unit
+      if (formulaTargetUnit) {
+        commonFormulaTargetUnits.add(formulaTargetUnit)
+      }
+    }
+  })
+
+  // Return a validator function that uses the pre-calculated target units
+  return (value: string): true | string => {
+    // First, validate the format using the existing validateUnitConversion function
+    const formatValidation = validateUnitConversion(value)
+    if (formatValidation !== true) {
+      return formatValidation
+    }
+
+    // If format is valid, check if this conversion already exists in common formulas
+    const parsedConversion = parseUnitConversion(value)
+    const targetUnit = parsedConversion.unit
+
+    // Check if this conversion already exists in common formulas
+    if (commonFormulaTargetUnits.has(targetUnit)) {
+      return `The conversion to "${targetUnit}" already exists in common formulas. No need to add it again.`
+    }
+
+    return true
+  }
+}
+
 // Generate unit conversion suggestions based on existing products
 function generateUnitConversionSuggestions(unit: string, products: ProductType[]) {
   if (!unit) {
@@ -462,40 +506,8 @@ function generateUnitConversionSuggestions(unit: string, products: ProductType[]
 
   // Collect all unit conversions that involve the current unit
   const suggestionsMap = new Map<string, string>()
-  const hitUnits = new Set<string>()
 
-  // First, add suggestions from our constant formulas
-  // Add constant formula suggestions
-  COMMON_FORMULAS.forEach(([targetUnit, formula]: [string, string]) => {
-    // Extract the source unit from the formula (everything after '=')
-    const formulaContent = formula.substring(1).trim()
-    const parsedFormula = parseUnit(formulaContent)
-    const formulaUnit = parsedFormula.unit
-    const formulaNumber = parsedFormula.number
-
-    // Only add if the current unit matches either the source or target unit
-    if (formulaUnit === currentUnit) {
-      // Convert from formula unit to target unit
-      const targetNumber = (currentUnitNumber * formulaNumber) / 1 // Assuming base is 1
-      const formattedNumber = formatNumber(targetNumber, 6)
-      const key = `${formattedNumber} ${targetUnit} (Constant Formula)`
-      suggestionsMap.set(key, key)
-
-      hitUnits.add(formulaUnit)
-      return
-    }
-
-    if (targetUnit === currentUnit) {
-      // Convert from target unit to formula unit
-      const sourceNumber = (currentUnitNumber * 1) / formulaNumber // Assuming base is 1
-      const formattedNumber = formatNumber(sourceNumber, 6)
-      const key = `${formattedNumber} ${formulaUnit} (Constant Formula)`
-      suggestionsMap.set(key, key)
-
-      hitUnits.add(formulaUnit)
-    }
-  })
-
+  // Only add suggestions from products, not from common formulas
   products.forEach((product) => {
     if (!(product.unitConversions && product.unitConversions.length > 0)) {
       return
@@ -511,10 +523,6 @@ function generateUnitConversionSuggestions(unit: string, products: ProductType[]
       const parsed = parseUnitConversion(conversionStr)
       const conversionNumber = parsed.number
       const conversionUnit = parsed.unit
-
-      if (hitUnits.has(conversionUnit)) {
-        return
-      }
 
       if (!(conversionUnit && productBaseUnit)) {
         return

@@ -7,15 +7,17 @@ describe('validateProductUnitPrice', () => {
     expect(validateProductUnitPrice('123')).toBe(true)
     expect(validateProductUnitPrice('1000')).toBe(true)
 
-    // Valid decimals (up to 2 decimal places)
+    // Valid decimals (up to 3 decimal places)
     expect(validateProductUnitPrice('123.45')).toBe(true)
     expect(validateProductUnitPrice('0.1')).toBe(true)
     expect(validateProductUnitPrice('1000.00')).toBe(true)
     expect(validateProductUnitPrice('123.4')).toBe(true)
+    expect(validateProductUnitPrice('123.456')).toBe(true) // 3 decimal places
 
     // Prices with commas (only one comma allowed)
     expect(validateProductUnitPrice('1,000')).toBe(true)
     expect(validateProductUnitPrice('1,000.50')).toBe(true)
+    expect(validateProductUnitPrice('1,000.123')).toBe(true) // 3 decimal places with comma
 
     // Edge cases
     expect(validateProductUnitPrice('.5')).toBe(true) // Leading decimal
@@ -33,6 +35,7 @@ describe('validateProductUnitPrice', () => {
     expect(validateProductUnitPrice('-0')).toBe('Price cannot be negative')
     expect(validateProductUnitPrice('-123.45')).toBe('Price cannot be negative')
     expect(validateProductUnitPrice('-1,000')).toBe('Price cannot be negative')
+    expect(validateProductUnitPrice('-123.456')).toBe('Price cannot be negative') // 3 decimal places
   })
 
   it('should return specific error message for invalid characters', () => {
@@ -58,6 +61,7 @@ describe('validateProductUnitPrice', () => {
 
     // This is actually valid (comma before decimal point)
     expect(validateProductUnitPrice('12,3.45')).toBe(true)
+    expect(validateProductUnitPrice('12,3.456')).toBe(true) // 3 decimal places
   })
 
   it('should return error message for prices that are too large', () => {
@@ -71,11 +75,10 @@ describe('validateProductUnitPrice', () => {
     expect(validateProductUnitPrice('.')).toBe('Price can only contain numbers, commas, and periods')
   })
 
-  it('should return error message for prices with more than 2 decimal places', () => {
-    expect(validateProductUnitPrice('123.456')).toBe('Price can have at most 2 decimal places')
-    expect(validateProductUnitPrice('123.4567')).toBe('Price can have at most 2 decimal places')
-    expect(validateProductUnitPrice('0.123')).toBe('Price can have at most 2 decimal places')
-    expect(validateProductUnitPrice('1,000.123')).toBe('Price can have at most 2 decimal places')
+  it('should return error message for prices with more than 3 decimal places', () => {
+    expect(validateProductUnitPrice('123.4567')).toBe('Price can have at most 3 decimal places')
+    expect(validateProductUnitPrice('0.1234')).toBe('Price can have at most 3 decimal places')
+    expect(validateProductUnitPrice('1,000.1234')).toBe('Price can have at most 3 decimal places')
   })
 
   it('should handle edge cases', () => {
@@ -85,11 +88,13 @@ describe('validateProductUnitPrice', () => {
     // Leading zeros
     expect(validateProductUnitPrice('000123')).toBe(true)
     expect(validateProductUnitPrice('000.12')).toBe(true)
+    expect(validateProductUnitPrice('000.123')).toBe(true) // 3 decimal places
 
     // Trailing zeros after decimal
     expect(validateProductUnitPrice('123.00')).toBe(true)
+    expect(validateProductUnitPrice('123.000')).toBe(true) // 3 decimal places
 
-    // Exactly 2 decimal places
-    expect(validateProductUnitPrice('123.45')).toBe(true)
+    // Exactly 3 decimal places
+    expect(validateProductUnitPrice('123.456')).toBe(true)
   })
 })
