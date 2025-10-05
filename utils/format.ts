@@ -139,28 +139,28 @@ export function parseUnit(unit: string): { number: number; unit: string } {
       number: isNaN(number) ? 1 : number,
       unit: unitPart,
     }
-  } else {
-    // If no space, the whole thing should be number + unit
-    // Find where number ends and unit begins
-    const cleanInput = parts[0].replace(/,/g, '') // Remove commas
+  }
 
-    // Find the boundary between number and unit
-    let i = 0
-    // Skip digits and decimal point
-    while (i < cleanInput.length && (/^\d$/.test(cleanInput[i]) || cleanInput[i] === '.')) {
-      i++
-    }
+  // If no space, the whole thing should be number + unit
+  // Find where number ends and unit begins
+  const cleanInput = parts[0].replace(/,/g, '') // Remove commas
 
-    // The rest should be the unit
-    const unitPart = cleanInput.substring(i)
-    const numberPart = cleanInput.substring(0, i)
+  // Find the boundary between number and unit
+  let i = 0
+  // Skip digits and decimal point
+  while (i < cleanInput.length && (/^\d$/.test(cleanInput[i]) || cleanInput[i] === '.')) {
+    i++
+  }
 
-    const number = parseFloat(numberPart)
+  // The rest should be the unit
+  const unitPart = cleanInput.substring(i)
+  const numberPart = cleanInput.substring(0, i)
 
-    return {
-      number: isNaN(number) ? 1 : number,
-      unit: unitPart || parts[0],
-    }
+  const number = parseFloat(numberPart)
+
+  return {
+    number: isNaN(number) ? 1 : number,
+    unit: unitPart || parts[0],
   }
 }
 

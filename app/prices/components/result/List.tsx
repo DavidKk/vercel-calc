@@ -1,8 +1,8 @@
 import type { PriceLevel } from '@/app/prices/types'
 import { isFormula } from '@/app/prices/types'
-import { PriceLevelDisplay } from '../PriceLevelDisplay'
-import { PriceDisplay } from '../PriceDisplay'
-import { formatNumberWithCommas } from '@/utils/format'
+import { PriceLevelDisplay } from '@/app/prices/components/PriceLevelDisplay'
+import { PriceDisplay } from '@/app/prices/components/PriceDisplay'
+import { Quantity } from '@/app/prices/components/Quantity'
 
 /**
  * Comparison item interface for product comparison
@@ -16,6 +16,8 @@ export interface ComparisonItem {
   unitBestPrice: number
   /** Price level of the product */
   level: PriceLevel
+  /** Unit of the product */
+  unit?: string
   /** Quantity of the product */
   quantity: number
   /** Product remark (optional) */
@@ -32,8 +34,6 @@ export interface ListProps {
   onBrandSelect?: (item: ComparisonItem) => void
   /** Quantity input - can be a formula (starts with =) or a regular input */
   quantity?: string | number
-  /** Unit of the product */
-  unit?: string
   /** Unit price of the product */
   totalPriceNumeric?: number
 }
@@ -43,7 +43,7 @@ export interface ListProps {
  * @param props - List component props
  * @returns React component for displaying a list of products
  */
-export function List({ items, onBrandSelect, quantity, unit, totalPriceNumeric }: ListProps) {
+export function List({ items, onBrandSelect, quantity, totalPriceNumeric }: ListProps) {
   // Calculate actual quantity based on whether it's a formula or regular input
   let actualQuantity: number | null = null
   if (typeof quantity === 'string' && isFormula(quantity)) {
@@ -62,7 +62,9 @@ export function List({ items, onBrandSelect, quantity, unit, totalPriceNumeric }
   return (
     <div className="flex flex-col gap-2 w-full">
       {items.map((item, idx) => {
-        let averagePrice = item.unitBestPrice
+        const { name, brand, unit, remark, quantity, unitBestPrice, level } = item
+
+        let averagePrice = unitBestPrice
         if (totalPriceNumeric !== undefined && actualQuantity !== 0) {
           averagePrice = totalPriceNumeric / actualQuantity
         }
@@ -71,37 +73,37 @@ export function List({ items, onBrandSelect, quantity, unit, totalPriceNumeric }
           <div
             className="flex items-center bg-gray-800/90 hover:bg-gray-800 transition-colors rounded-md p-3 cursor-pointer gap-3"
             onClick={() => onBrandSelect?.(item)}
-            key={`${item.brand || 'no-brand'}-${item.name}-${idx}`}
+            key={`${brand || 'no-brand'}-${name}-${idx}`}
           >
             <div className="flex flex-col flex-1">
               <div className="text-white text-base font-medium">
-                {item.name} {item.brand && <span className="text-gray-400 text-sm font-normal">&nbsp;-&nbsp;{item.brand}</span>}
+                {name} {brand && <span className="text-gray-400 text-sm font-normal">&nbsp;-&nbsp;{brand}</span>}
               </div>
-              {item.remark && <div className="text-gray-400 text-xs">{item.remark}</div>}
 
-              <div className="flex items-center gap-x-1 text-white font-light">
-                <PriceDisplay amount={averagePrice} size="lg" />
-                {item.quantity ? (
+              {remark && <div className="text-gray-400 text-xs">{remark}</div>}
+
+              <div className="flex items-center gap-x-2">
+                <PriceDisplay amount={averagePrice} classNName="text-white font-light" size="lg" />
+                {quantity && unit && (
                   <span className="text-gray-400 text-sm">
-                    {formatNumberWithCommas(item.quantity)} {unit}
+                    (total <Quantity quantity={quantity} unit={unit} />)
                   </span>
-                ) : null}
+                )}
               </div>
 
               <div className="flex items-center flex-wrap gap-x-1">
-                <span className="text-gray-400 text-sm">
-                  <PriceDisplay amount={item.unitBestPrice} size="md" />
-                </span>
-                {unit ? (
+                <span className="text-gray-400 text-[10px] bg-gray-600 px-1 rounded-sm font-bold">BEST</span>
+                <PriceDisplay amount={unitBestPrice} classNName="text-gray-400 text-sm" size="md" />
+                {unit && (
                   <span className="text-gray-400 text-sm">
-                    {formatNumberWithCommas(actualQuantity)} {unit}
+                    /<Quantity quantity={1} unit={unit} />
                   </span>
-                ) : null}
+                )}
               </div>
             </div>
 
             <div className="flex items-center justify-center">
-              <PriceLevelDisplay priceLevel={item.level} />
+              <PriceLevelDisplay priceLevel={level} />
             </div>
           </div>
         )

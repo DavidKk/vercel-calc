@@ -36,7 +36,7 @@ export function Result({ comparisons = [], onBrandSelect, selectedProduct, quant
   if (comparisons.length > 0) {
     return (
       <div className="flex flex-col gap-2 w-full">
-        <List items={comparisons} onBrandSelect={onBrandSelect} unit={selectedProduct.unit} totalPriceNumeric={totalPriceNumeric} quantity={quantity} />
+        <List items={comparisons} onBrandSelect={onBrandSelect} totalPriceNumeric={totalPriceNumeric} quantity={quantity} />
       </div>
     )
   }

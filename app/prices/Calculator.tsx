@@ -103,7 +103,7 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
         }
 
         const filteredUnitConversions = unitConversions.filter((u) => {
-          const parsedFormula = parseUnit(formulaContent)
+          const parsedFormula = parseUnit(u)
           return !hitUnits.has(parsedFormula.unit)
         })
 
