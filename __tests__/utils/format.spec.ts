@@ -1,4 +1,13 @@
-import { formatNumberWithCommas, parseFormattedNumber, formatNumber, parseUnit, parseUnitConversion, convertChineseToArabic, extractChineseNumerals } from '../../utils/format'
+import {
+  formatNumberWithCommas,
+  parseFormattedNumber,
+  formatNumber,
+  parseUnit,
+  parseUnitConversion,
+  convertChineseToArabic,
+  extractChineseNumerals,
+  convertChineseNumeralsInString,
+} from '../../utils/format'
 
 describe('formatNumberWithCommas', () => {
   // Test basic integer formatting
@@ -256,5 +265,30 @@ describe('extractChineseNumerals', () => {
     expect(extractChineseNumerals('十')).toBe('十')
     expect(extractChineseNumerals('十kg')).toBe('十')
     expect(extractChineseNumerals('一百零一  ')).toBe('一百零一')
+  })
+})
+
+describe('convertChineseNumeralsInString', () => {
+  it('should convert Chinese numerals in strings', () => {
+    expect(convertChineseNumeralsInString('= 十斤')).toBe('= 10斤')
+    expect(convertChineseNumeralsInString('= 一百公斤')).toBe('= 100公斤')
+    expect(convertChineseNumeralsInString('= 一千零一米')).toBe('= 1001米')
+    expect(convertChineseNumeralsInString('= 一百点二八斤')).toBe('= 100.28斤')
+  })
+
+  it('should handle strings without Chinese numerals', () => {
+    expect(convertChineseNumeralsInString('= 10 kg')).toBe('= 10 kg')
+    expect(convertChineseNumeralsInString('abc')).toBe('abc')
+    expect(convertChineseNumeralsInString('')).toBe('')
+  })
+
+  it('should handle mixed Chinese and Arabic numerals', () => {
+    expect(convertChineseNumeralsInString('= 十5斤')).toBe('= 105斤')
+    expect(convertChineseNumeralsInString('= 10十斤')).toBe('= 1010斤')
+  })
+
+  it('should handle multiple Chinese numerals in a string', () => {
+    expect(convertChineseNumeralsInString('十斤十五两')).toBe('10斤15两')
+    expect(convertChineseNumeralsInString('= 一百公斤二百斤')).toBe('= 100公斤200斤')
   })
 })

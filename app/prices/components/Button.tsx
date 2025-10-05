@@ -54,18 +54,6 @@ export function Button({
     icon: 'bg-gray-700 text-gray-400 cursor-not-allowed',
   }
 
-  const classes = classnames(
-    baseClasses,
-    {
-      [sizeClasses[size]]: variant !== 'icon',
-      [iconSizeClasses[size]]: variant === 'icon',
-      [variantClasses[variant]]: !disabled && !loading,
-      [disabledClasses[variant]]: disabled || loading,
-      'w-full': fullWidth,
-    },
-    className
-  )
-
   const iconMargin = children ? (size === 'sm' ? 'mx-1' : size === 'md' ? 'mx-1.5' : 'mx-2') : ''
 
   const Spinner = () => (
@@ -76,7 +64,21 @@ export function Button({
   )
 
   return (
-    <button className={classes} disabled={disabled || loading} {...props}>
+    <button
+      className={classnames(
+        baseClasses,
+        {
+          [sizeClasses[size]]: variant !== 'icon',
+          [iconSizeClasses[size]]: variant === 'icon',
+          [variantClasses[variant]]: !disabled && !loading,
+          [disabledClasses[variant]]: disabled || loading,
+          'w-full': fullWidth,
+        },
+        className
+      )}
+      disabled={disabled || loading}
+      {...props}
+    >
       {loading ? (
         <>
           <span className="mr-2">

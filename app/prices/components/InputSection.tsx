@@ -4,6 +4,7 @@ import type { ProductType } from '@/app/actions/prices/product'
 import SearchableSelect from '@/components/SearchableSelect'
 import { COMMON_FORMULAS } from '@/app/prices/constants/formulas'
 import { parseUnit } from '@/utils/format'
+import { processUnitConversionNumericPart } from '@/utils/price'
 import { NumberInput, type Suggestion } from './NumberInput'
 import { Button } from './Button'
 import { isFormula } from '../types'
@@ -75,9 +76,12 @@ export function InputSection({
     const formulaConversions: string[] = []
     for (const [sourceUnit, formula] of COMMON_FORMULAS) {
       const { unit: finalUnit } = parseUnit(unit)
-      if (sourceUnit === finalUnit) {
-        formulaConversions.push(formula)
+      if (sourceUnit !== finalUnit) {
+        continue
       }
+
+      const adjustedFormula = processUnitConversionNumericPart(unit, formula.slice(1))
+      formulaConversions.push(adjustedFormula)
     }
 
     // Add unit conversions from products only if there's no corresponding formula
@@ -141,7 +145,7 @@ export function InputSection({
       <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-2 mt-auto">
           <SearchableSelect value={name} options={productOptions} onChange={onProductChange} clearable={false} size="md" />
-          <Button className="w-1/3" onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" fullWidth />
+          <Button className="w-1/3" onClick={onClear} variant="danger" size="lg" icon={<BackspaceIcon className="h-6 w-6" />} title="Clear" />
         </div>
 
         {/* Input field for total price */}

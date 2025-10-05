@@ -38,14 +38,6 @@ export function NumberInput(props: NumberInputProps) {
         onChange('', 0)
         return
       }
-
-      // Check if the input contains only valid characters for numbers
-      const validNumberPattern = /^[\d.,\-]*$/
-      if (!validNumberPattern.test(inputValue)) {
-        // If it's not a valid number input, show an error and don't update
-        error('Only numbers, commas, periods, and minus sign are allowed')
-        return
-      }
     }
 
     if (!supportFormula) {

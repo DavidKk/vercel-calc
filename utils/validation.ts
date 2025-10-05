@@ -249,43 +249,43 @@ export function validateUnitConversion(conversion: string): true | string {
     }
 
     return true
-  } else {
-    // If no space, the whole thing should be number + unit
-    // Find where number ends and unit begins
-    const numberAndUnit = parts[0]
-
-    // Remove commas from the string for processing
-    const cleanInput = numberAndUnit.replace(/,/g, '')
-
-    // Find the boundary between number and unit
-    let i = 0
-    // Skip digits and decimal point
-    while (i < cleanInput.length && (/^\d$/.test(cleanInput[i]) || cleanInput[i] === '.')) {
-      i++
-    }
-
-    // The rest should be the unit
-    const unitPart = cleanInput.substring(i)
-    const numberPart = cleanInput.substring(0, i)
-
-    // Validate number part - check if it's a valid number
-    if (!/^\d+(\.\d+)?$/.test(numberPart)) {
-      return 'Invalid number in unit conversion'
-    }
-
-    // Validate unit part
-    if (unitPart.length === 0) {
-      return 'Unit is required in unit conversion' // No unit
-    }
-
-    // Use validateUnit function to validate the unit
-    const unitValidation = validateUnit(unitPart)
-    if (unitValidation !== true) {
-      return unitValidation
-    }
-
-    return true
   }
+
+  // If no space, the whole thing should be number + unit
+  // Find where number ends and unit begins
+  const numberAndUnit = parts[0]
+
+  // Remove commas from the string for processing
+  const cleanInput = numberAndUnit.replace(/,/g, '')
+
+  // Find the boundary between number and unit
+  let i = 0
+  // Skip digits and decimal point
+  while (i < cleanInput.length && (/^\d$/.test(cleanInput[i]) || cleanInput[i] === '.')) {
+    i++
+  }
+
+  // The rest should be the unit
+  const unitPart = cleanInput.substring(i)
+  const numberPart = cleanInput.substring(0, i)
+
+  // Validate number part - check if it's a valid number
+  if (!/^\d+(\.\d+)?$/.test(numberPart)) {
+    return 'Invalid number in unit conversion'
+  }
+
+  // Validate unit part
+  if (unitPart.length === 0) {
+    return 'Unit is required in unit conversion' // No unit
+  }
+
+  // Use validateUnit function to validate the unit
+  const unitValidation = validateUnit(unitPart)
+  if (unitValidation !== true) {
+    return unitValidation
+  }
+
+  return true
 }
 
 /**

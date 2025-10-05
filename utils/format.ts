@@ -381,3 +381,49 @@ export function extractChineseNumerals(value: string): string {
 
   return chineseNumeralPart
 }
+
+/**
+ * Convert Chinese numerals in a string to Arabic numerals
+ * @param value The string containing Chinese numerals (e.g. "= 十斤" -> "= 10斤")
+ * @returns The string with Chinese numerals converted to Arabic numerals
+ */
+export function convertChineseNumeralsInString(value: string): string {
+  if (!value || value.trim() === '') {
+    return value
+  }
+
+  // Define Chinese numeral characters
+  const chineseNumeralChars = '零一二三四五六七八九十百千万亿点'
+
+  let result = ''
+  let i = 0
+
+  while (i < value.length) {
+    // Check if current character is a Chinese numeral
+    if (chineseNumeralChars.includes(value[i])) {
+      // Extract the entire Chinese numeral sequence
+      let chineseNumeralPart = ''
+      let j = i
+
+      while (j < value.length && chineseNumeralChars.includes(value[j])) {
+        chineseNumeralPart += value[j]
+        j++
+      }
+
+      // Convert the Chinese numeral to Arabic numeral
+      const arabicNumeral = convertChineseToArabic(chineseNumeralPart)
+
+      // Add the converted numeral to result
+      result += arabicNumeral.toString()
+
+      // Move index to the end of the Chinese numeral sequence
+      i = j
+    } else {
+      // Add non-Chinese numeral character as is
+      result += value[i]
+      i++
+    }
+  }
+
+  return result
+}

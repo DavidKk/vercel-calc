@@ -1,9 +1,7 @@
 import type { PriceLevel } from '@/app/prices/types'
-import { isFormula } from '@/app/prices/types'
 import { PriceLevelDisplay } from '@/app/prices/components/PriceLevelDisplay'
 import { PriceDisplay } from '@/app/prices/components/PriceDisplay'
 import { Quantity } from '@/app/prices/components/Quantity'
-import { parseUnit } from '@/utils/format'
 import { safeDivide } from '@/utils/calc'
 
 /**
@@ -20,6 +18,8 @@ export interface ComparisonItem {
   level: PriceLevel
   /** Unit of the product */
   unit?: string
+  /** Current price of the product per unit */
+  unitCurrentPrice: number
   /** Quantity of the product */
   quantity: number
   /** Product remark (optional) */
@@ -45,8 +45,7 @@ export function List({ items, onBrandSelect }: ListProps) {
   return (
     <div className="flex flex-col gap-2 w-full">
       {items.map((item, idx) => {
-        const { name, brand, unit, remark, quantity, unitBestPrice, level } = item
-        const averagePrice = safeDivide(unitBestPrice, quantity)
+        const { name, brand, unit, remark, unitCurrentPrice, quantity, unitBestPrice, level } = item
 
         return (
           <div
@@ -62,7 +61,7 @@ export function List({ items, onBrandSelect }: ListProps) {
               {remark && <div className="text-gray-400 text-xs">{remark}</div>}
 
               <div className="flex items-center gap-x-2">
-                <span className="text-white font-light text-lg">{averagePrice ? <PriceDisplay amount={averagePrice} size="lg" /> : <>N/A</>}</span>
+                <span className="text-white font-light text-lg">{unitCurrentPrice ? <PriceDisplay amount={unitCurrentPrice} size="lg" /> : <>N/A</>}</span>
                 {quantity && unit && (
                   <span className="text-gray-400 text-sm">
                     (total <Quantity quantity={quantity} unit={unit} />)

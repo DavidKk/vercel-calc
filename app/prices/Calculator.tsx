@@ -62,12 +62,12 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
 
   useEffect(() => {
     if (selectedProductName && totalPrice && totalQuantity) {
-      const comparisons = calculateAveragePrice(totalPrice, totalQuantity, productsBySelectedName)
+      const comparisons = calculateAveragePrice(totalPrice, totalQuantity, productsBySelectedName, selectedUnit)
       setComparisons(comparisons)
     } else {
       setComparisons([])
     }
-  }, [selectedProductName, totalPrice, totalQuantity])
+  }, [selectedProductName, totalPrice, totalQuantity, selectedUnit])
 
   const clearAll = () => {
     setTotalPrice('')
