@@ -82,8 +82,6 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
     setTotalPrice('')
     setTotalQuantity('')
     setComparisons([])
-
-    notification.success('Clear successful')
   }
 
   const handleBrandSelect = async (item: ComparisonItem) => {

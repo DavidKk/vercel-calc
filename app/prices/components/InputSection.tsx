@@ -184,7 +184,7 @@ export function InputSection({
         </div>
 
         {/* Input field for total price */}
-        <NumberInput name="totalPrice" inputMode="decimal" value={totalPrice} unit="¥" onChange={onTotalPriceChange} enterKeyHint="next" tabIndex={1} />
+        <NumberInput name="totalPrice" inputMode="decimal" value={totalPrice} unit="¥" placeholder="Total Price" onChange={onTotalPriceChange} enterKeyHint="next" tabIndex={1} />
 
         {/* Input field for total quantity with suggestions */}
         <NumberInput
@@ -192,6 +192,7 @@ export function InputSection({
           inputMode="decimal"
           value={totalQuantity}
           unit={unit}
+          placeholder="Total Quantity (e.g. 2 or =1+1)"
           supportFormula={supportFormula}
           suggestions={quantitySuggestions}
           onChange={onTotalQuantityChange}
