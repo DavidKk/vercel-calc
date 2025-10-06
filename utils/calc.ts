@@ -1,3 +1,5 @@
+import { divide } from './math'
+
 /**
  * Safe division - calculate unit price (total price divided by quantity)
  * @param dividend The dividend (total price)
@@ -10,5 +12,5 @@ export function safeDivide(dividend: number, divisor: number): number {
     return 0
   }
 
-  return dividend / divisor
+  return divide(dividend, divisor)
 }

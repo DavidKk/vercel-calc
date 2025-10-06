@@ -1,4 +1,5 @@
 import { PriceLevel } from '@/app/prices/types'
+import { divide } from '@/utils/math'
 
 /**
  * Calculate price level based on current unit price and recommended price
@@ -11,7 +12,7 @@ export function calculatePriceLevel(currentUnitPrice: number, unitBestPrice: num
     throw new Error('Recommended price cannot be zero')
   }
 
-  const ratio = currentUnitPrice / unitBestPrice
+  const ratio = divide(currentUnitPrice, unitBestPrice)
 
   if (ratio <= 0.7) {
     return PriceLevel.EXCELLENT

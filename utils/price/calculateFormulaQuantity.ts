@@ -1,4 +1,5 @@
 import { parseUnit, parseUnitConversion } from '@/utils/format'
+import { divide, multiply } from '@/utils/math'
 
 /**
  * Calculate actual quantity based on formula and unit conversion relationships
@@ -77,7 +78,7 @@ export function calculateFormulaQuantity(formula: string, targetUnit: string, un
           // baseNumber baseUnitOnly = conversionNumber conversionUnit
           // formulaNumber formulaUnit = ? targetUnit
           // According to unit conversion calculation specification: ? = (formulaNumber * conversionNumber) / baseNumber
-          return (formulaNumber * conversionNumber) / baseNumber
+          return divide(multiply(formulaNumber, conversionNumber), baseNumber)
         }
 
         // Case 2: Base unit = conversion unit, formula unit is conversion unit, target unit is unit part of base unit
@@ -85,7 +86,7 @@ export function calculateFormulaQuantity(formula: string, targetUnit: string, un
           // baseNumber baseUnitOnly = conversionNumber conversionUnit
           // ? targetUnit = formulaNumber formulaUnit
           // According to unit conversion calculation specification: ? = (formulaNumber * baseNumber) / conversionNumber
-          return (formulaNumber * baseNumber) / conversionNumber
+          return divide(multiply(formulaNumber, baseNumber), conversionNumber)
         }
       }
     }

@@ -1,4 +1,5 @@
 import { parseUnit } from '@/utils/format'
+import { multiply } from '@/utils/math'
 
 export function processUnitConversionNumericPart(unit: string, conversion: string) {
   // Parse the base unit to extract number and unit parts
@@ -14,7 +15,7 @@ export function processUnitConversionNumericPart(unit: string, conversion: strin
 
   // Calculate the adjusted conversion number
   // If base unit is "100g = 1 bottle", then for "500g" we need "5 bottles"
-  const adjustedNumber = conversionNumber * baseNumber
+  const adjustedNumber = multiply(conversionNumber, baseNumber)
   // Return the adjusted conversion
   return `${adjustedNumber} ${conversionUnit}`
 }
