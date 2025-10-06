@@ -3,6 +3,7 @@ import { useId, useRef, useState } from 'react'
 
 import { useNotification } from '@/components/Notification'
 import { formatNumberWithCommas, parseFormattedNumber } from '@/utils/format'
+import { calculateMathExpression } from '@/utils/mathExpression'
 
 import { isFormula } from '../types'
 
@@ -31,6 +32,7 @@ export function NumberInput(props: NumberInputProps) {
   const id = useId()
 
   const isFormulaMode = isFormula(value)
+  // In formula mode, display the value without the '=' sign for better UX
   const displayValue = isFormulaMode ? value.substring(1) : value
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,14 +67,31 @@ export function NumberInput(props: NumberInputProps) {
       return
     }
 
-    if (isFormulaMode) {
-      onChange('=' + inputValue, 0)
+    // Check if the input contains '=' and convert to formula mode
+    if (inputValue.includes('=')) {
+      // Remove all '=' characters and put one at the beginning
+      const withoutEquals = inputValue.replace(/=/g, '')
+      onChange('=' + withoutEquals, 0)
+      // Focus at the end of the input
+      setTimeout(() => {
+        const input = inputRef.current
+        if (input) {
+          const length = input.value.length
+          input.setSelectionRange(length, length)
+        }
+      }, 0)
       return
     }
 
-    if (inputValue.startsWith('=')) {
-      const formulaContent = inputValue.substring(1)
-      onChange('=' + formulaContent, 0)
+    if (isFormulaMode) {
+      // In formula mode, the displayValue does not include the '=' sign
+      // So we need to add it to the internal value
+      // But if the input already starts with '=', we use it as is
+      if (inputValue.startsWith('=')) {
+        onChange(inputValue, 0)
+      } else {
+        onChange('=' + inputValue, 0)
+      }
       return
     }
 
@@ -96,6 +115,28 @@ export function NumberInput(props: NumberInputProps) {
 
     if (isFormulaMode && displayValue === '' && e.key === 'Backspace') {
       onChange('', 0)
+    }
+
+    // Handle Enter key - calculate formula if it's a valid math expression
+    if (e.key === 'Enter' && isFormulaMode) {
+      // Extract the expression part (without the '=' sign)
+      const expression = displayValue.startsWith('=') ? displayValue.substring(1).trim() : displayValue
+      const result = calculateMathExpression(expression)
+      if (!isNaN(result)) {
+        // Convert formula to calculated result but keep formula mode
+        const formattedResult = formatNumberWithCommas(result.toString())
+        onChange('=' + formattedResult, result)
+        // Keep focus in the input
+        setTimeout(() => {
+          const input = inputRef.current
+          if (input) {
+            const length = input.value.length
+            input.setSelectionRange(length, length)
+          }
+        }, 0)
+        e.preventDefault()
+        return
+      }
     }
 
     // Handle Enter key based on enterKeyHint
@@ -122,12 +163,19 @@ export function NumberInput(props: NumberInputProps) {
     }
   }
 
-  const handleFocus = () => {
-    setShowSuggestions(true)
-    onFocus?.()
-  }
-
   const handleBlur = () => {
+    // If in formula mode, try to calculate the expression
+    if (isFormulaMode) {
+      // Extract the expression part (without the '=' sign)
+      const expression = displayValue.startsWith('=') ? displayValue.substring(1).trim() : displayValue
+      const result = calculateMathExpression(expression)
+      if (!isNaN(result)) {
+        // Convert formula to number result (exit formula mode)
+        const formattedResult = formatNumberWithCommas(result.toString())
+        onChange(formattedResult, result)
+      }
+    }
+
     // Delay hiding suggestions to allow clicking on them
     setTimeout(() => setShowSuggestions(false), 150)
     onBlur?.()
@@ -167,7 +215,10 @@ export function NumberInput(props: NumberInputProps) {
             value={displayValue}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            onFocus={handleFocus}
+            onFocus={() => {
+              setShowSuggestions(true)
+              onFocus?.()
+            }}
             onBlur={handleBlur}
             enterKeyHint={enterKeyHint}
             tabIndex={tabIndex}
