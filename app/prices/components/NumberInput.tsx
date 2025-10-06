@@ -16,6 +16,21 @@ export interface NumberInputProps extends Omit<React.InputHTMLAttributes<HTMLInp
   value: string
   unit: string
   supportFormula?: boolean
+  /**
+   * Controls the behavior when pressing Enter key in formula mode:
+   * - When `commitOnEnter` is `false` (default), pressing Enter only previews the calculated result
+   *   but keeps the formula mode (preserves the '=' prefix)
+   * - When `commitOnEnter` is `true`, pressing Enter fully evaluates the formula and exits formula mode
+   *
+   * Regardless of this setting, losing focus (blur) will always fully evaluate and exit formula mode.
+   *
+   * Example:
+   * | Mode           | Input  | ENTER Result | BLUR Result |
+   * | -------------- | ------ | ------------ | ----------- |
+   * | commitOnEnter=false | `=1+1` | `=2`         | `2`         |
+   * | commitOnEnter=true  | `=1+1` | `2`          | `2`         |
+   */
+  commitOnEnter?: boolean
   suggestions?: Suggestion[]
   onChange: (value: string, numericValue: number) => void
   onFocus?: () => void
@@ -25,7 +40,7 @@ export interface NumberInputProps extends Omit<React.InputHTMLAttributes<HTMLInp
 }
 
 export function NumberInput(props: NumberInputProps) {
-  const { value, unit, supportFormula = true, suggestions = [], onChange, onFocus, onBlur, enterKeyHint, tabIndex, ...restProps } = props
+  const { value, unit, supportFormula = true, commitOnEnter = false, suggestions = [], onChange, onFocus, onBlur, enterKeyHint, tabIndex, ...restProps } = props
   const inputRef = useRef<HTMLInputElement>(null)
   const { error } = useNotification()
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -123,17 +138,28 @@ export function NumberInput(props: NumberInputProps) {
       const expression = displayValue.startsWith('=') ? displayValue.substring(1).trim() : displayValue
       const result = calculateMathExpression(expression)
       if (!isNaN(result)) {
-        // Convert formula to calculated result but keep formula mode
         const formattedResult = formatNumberWithCommas(result.toString())
-        onChange('=' + formattedResult, result)
-        // Keep focus in the input
-        setTimeout(() => {
-          const input = inputRef.current
-          if (input) {
-            const length = input.value.length
-            input.setSelectionRange(length, length)
+
+        // 根据 commitOnEnter 属性决定 Enter 键的行为
+        if (commitOnEnter) {
+          // commitOnEnter 为 true 时，Enter 键直接求值并退出公式模式
+          onChange(formattedResult, result)
+          // Blur the input to close keyboard if needed
+          if (enterKeyHint === 'done') {
+            inputRef.current?.blur()
           }
-        }, 0)
+        } else {
+          // commitOnEnter 为 false 时，Enter 键只做预览（保留 = 前缀）
+          onChange('=' + formattedResult, result)
+          // Keep focus in the input
+          setTimeout(() => {
+            const input = inputRef.current
+            if (input) {
+              const length = input.value.length
+              input.setSelectionRange(length, length)
+            }
+          }, 0)
+        }
         e.preventDefault()
         return
       }

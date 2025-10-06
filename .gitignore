@@ -2,6 +2,8 @@
 .next
 coverage
 junit.xml
+playwright-report
+__e2etests__/test-results
 *.tsbuildinfo
 tsconfig.build.json
 

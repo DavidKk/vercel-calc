@@ -183,8 +183,18 @@ export function InputSection({
           })()}
         </div>
 
-        {/* Input field for total price */}
-        <NumberInput name="totalPrice" inputMode="decimal" value={totalPrice} unit="¥" placeholder="Total Price" onChange={onTotalPriceChange} enterKeyHint="next" tabIndex={1} />
+        {/* Input field for total price - always commit on Enter */}
+        <NumberInput
+          name="totalPrice"
+          inputMode="decimal"
+          value={totalPrice}
+          unit="¥"
+          placeholder="Total Price"
+          onChange={onTotalPriceChange}
+          enterKeyHint="next"
+          tabIndex={1}
+          commitOnEnter={true} // 总价输入框无论 ENTER 还是 BLUR 都只能转换成数字
+        />
 
         {/* Input field for total quantity with suggestions */}
         <NumberInput
