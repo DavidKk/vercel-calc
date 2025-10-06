@@ -10,15 +10,17 @@ import { calculatePriceLevel } from './calculatePriceLevel'
 import { batchProcessUnitConversionNumericPart } from './processUnitConversionNumericPart'
 
 /**
- * Calculate average price and comparisons for products
+ * Calculate product comparisons based on total price and quantity
+ * This function validates the input price and quantity, processes formula quantities if needed,
+ * and calculates unit prices and price levels for each product to enable comparisons
  *
- * @param totalPriceNumeric - Total price as a number
- * @param totalQuantity - Total quantity as a string (to check if it's a formula)
+ * @param totalPrice - Total price as a string (may be a formula starting with '=')
+ * @param totalQuantity - Total quantity as a string (may be a formula starting with '=')
  * @param products - Array of products for the selected product name
- * @param productUnitOnly - 因为输入的数量如果为公式则可能是其他单位，因此这里需要单独传入当前计算的商品数量单位
- * @returns Object containing average price, price level, and comparison items
+ * @param productUnitOnly - The unit of the current product being calculated, needed because formula inputs may use different units
+ * @returns Array of comparison items with calculated prices and levels
  */
-export function calculateAveragePrice(totalPrice: string, totalQuantity: string, products: ProductType[], productUnitOnly: string) {
+export function calculateProductComparisons(totalPrice: string, totalQuantity: string, products: ProductType[], productUnitOnly: string) {
   const totalPriceNumeric = isFormula(totalPrice) ? 0 : parseFormattedNumber(totalPrice)
   const totalQuantityNumeric = isFormula(totalQuantity) ? 0 : parseFormattedNumber(totalQuantity)
 

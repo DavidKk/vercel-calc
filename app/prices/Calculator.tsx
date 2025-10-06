@@ -7,7 +7,7 @@ import { useNotification } from '@/components/Notification/useNotification'
 import { useFullscreen } from '@/hooks/useFullscreen'
 import { useLocalStorageState } from '@/hooks/useLocalStorageState'
 import { parseFormattedNumber, parseUnit } from '@/utils/format'
-import { calculateAveragePrice } from '@/utils/price/calculateAveragePrice'
+import { calculateProductComparisons } from '@/utils/price/calculateProductComparisons'
 
 import { List } from './components/history'
 import { toProductSnapshot } from './components/history/types'
@@ -71,7 +71,7 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
 
   useEffect(() => {
     if (selectedProductName && totalPrice && totalQuantity) {
-      const comparisons = calculateAveragePrice(totalPrice, totalQuantity, productsBySelectedName, selectedUnit)
+      const comparisons = calculateProductComparisons(totalPrice, totalQuantity, productsBySelectedName, selectedUnit)
       setComparisons(comparisons)
     } else {
       setComparisons([])

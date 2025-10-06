@@ -1,7 +1,7 @@
 import type { ProductType } from '@/app/actions/prices/product'
-import { calculateAveragePrice } from '@/utils/price/calculateAveragePrice'
+import { calculateProductComparisons } from '@/utils/price/calculateProductComparisons'
 
-describe('calculateAveragePrice', () => {
+describe('calculateProductComparisons', () => {
   const mockProducts: ProductType[] = [
     {
       id: '1',
@@ -24,29 +24,24 @@ describe('calculateAveragePrice', () => {
   ]
 
   it('should return empty array when totalPrice and totalQuantity are both zero', () => {
-    const result = calculateAveragePrice('0', '0', mockProducts, 'kg')
+    const result = calculateProductComparisons('0', '0', mockProducts, 'kg')
     expect(result).toEqual([])
   })
 
   it('should return empty array when totalQuantity is invalid', () => {
-    const result = calculateAveragePrice('100', 'abc', mockProducts, 'kg')
+    const result = calculateProductComparisons('100', 'abc', mockProducts, 'kg')
     expect(result).toEqual([])
   })
 
   it('should return empty array when totalQuantity is zero', () => {
-    const result = calculateAveragePrice('100', '0', mockProducts, 'kg')
+    const result = calculateProductComparisons('100', '0', mockProducts, 'kg')
     expect(result).toEqual([])
   })
 
-  it('should return empty array when totalQuantity is zero', () => {
-    const result = calculateAveragePrice('100', '0', mockProducts, 'kg')
-    expect(result).toEqual([])
-  })
-
-  it('should calculate average price correctly for valid inputs', () => {
-    const result = calculateAveragePrice('100', '10', mockProducts, 'kg')
-
+  it('should calculate comparisons correctly for valid inputs', () => {
+    const result = calculateProductComparisons('100', '10', mockProducts, 'kg')
     expect(result).toHaveLength(2)
+
     expect(result[0]).toMatchObject({
       name: 'Apple',
       brand: 'Brand A',
@@ -69,9 +64,9 @@ describe('calculateAveragePrice', () => {
 
     // Need to re-import after mock
     jest.resetModules()
-    const { calculateAveragePrice: calculateAveragePriceWithMock } = require('@/utils/price/calculateAveragePrice')
+    const { calculateProductComparisons: calculateProductComparisonsWithMock } = require('@/utils/price/calculateProductComparisons')
 
-    const result = calculateAveragePriceWithMock('100', '= 10 kg', mockProducts, 'kg')
+    const result = calculateProductComparisonsWithMock('100', '= 10 kg', mockProducts, 'kg')
     expect(result).toHaveLength(2)
   })
 
@@ -87,7 +82,7 @@ describe('calculateAveragePrice', () => {
       },
     ]
 
-    const result = calculateAveragePrice('80', '10', productsWithoutConversions, 'kg')
+    const result = calculateProductComparisons('80', '10', productsWithoutConversions, 'kg')
     expect(result).toHaveLength(1)
     expect(result[0]).toMatchObject({
       name: 'Orange',
@@ -119,7 +114,7 @@ describe('calculateAveragePrice', () => {
       },
     ]
 
-    const result = calculateAveragePrice('60', '10', productsWithDifferentUnits, 'kg')
+    const result = calculateProductComparisons('60', '10', productsWithDifferentUnits, 'kg')
     expect(result).toHaveLength(2)
 
     // Both products should be processed
