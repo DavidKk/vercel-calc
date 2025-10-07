@@ -121,4 +121,41 @@ describe('calculateProductComparisons', () => {
     expect(result[0].name).toBe('Banana')
     expect(result[1].name).toBe('Banana')
   })
+
+  // New test case based on user provided data
+  it('should calculate comparisons correctly for formula quantity with unit conversion', () => {
+    const products: ProductType[] = [
+      {
+        id: '10',
+        name: '乐事薯片',
+        brand: '',
+        unit: '100g',
+        unitBestPrice: 5.04,
+        unitConversions: [], // Empty array as in the test data
+      },
+    ]
+
+    const result = calculateProductComparisons('1', '=1g', products, 'g')
+
+    // Should return one comparison item
+    expect(result).toHaveLength(1)
+
+    // Check the properties of the result
+    expect(result[0]).toMatchObject({
+      id: '10',
+      name: '乐事薯片',
+      brand: '',
+      unit: '100g',
+      unitBestPrice: 5.04,
+    })
+
+    // For "=1g" with product unit "100g", the quantity should be 0.01 (1g / 100g)
+    expect(result[0].quantity).toBeCloseTo(0.01)
+
+    // Unit current price should be 1 / 0.01 = 100
+    expect(result[0].unitCurrentPrice).toBeCloseTo(100)
+
+    // Check that price level is calculated
+    expect(result[0].level).toBeDefined()
+  })
 })

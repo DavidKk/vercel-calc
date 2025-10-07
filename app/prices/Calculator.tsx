@@ -71,7 +71,8 @@ export function Calculator({ productTypes, initialProductType }: CalculatorProps
 
   useEffect(() => {
     if (selectedProductName && totalPrice && totalQuantity) {
-      const comparisons = calculateProductComparisons(totalPrice, totalQuantity, productsBySelectedName, selectedUnit)
+      const selectedUnitOnly = parseUnit(selectedUnit).unit
+      const comparisons = calculateProductComparisons(totalPrice, totalQuantity, productsBySelectedName, selectedUnitOnly)
       setComparisons(comparisons)
     } else {
       setComparisons([])

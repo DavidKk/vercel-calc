@@ -23,13 +23,31 @@ import { batchProcessUnitConversionNumericPart } from './processUnitConversionNu
 export function calculateProductComparisons(totalPrice: string, totalQuantity: string, products: ProductType[], productUnitOnly: string) {
   const totalPriceNumeric = isFormula(totalPrice) ? 0 : parseFormattedNumber(totalPrice)
   const totalQuantityNumeric = isFormula(totalQuantity) ? 0 : parseFormattedNumber(totalQuantity)
-
   const isValidPrice = !isNaN(totalPriceNumeric)
   const isValidFormula = !(isNaN(totalQuantityNumeric) || totalQuantityNumeric === 0) || isFormula(totalQuantity)
   if (!(isValidPrice && isValidFormula)) {
     return []
   }
 
+  // If the input formula unit is the same as the product unit and the product unit has a quantity (e.g., 100 g),
+  // then the quantity needs to be divided by 100 to achieve consistent conversion.
+  // Using the following logic would multiply the final result by 100 again.
+  const comparisons: ComparisonItem[] = []
+  const { number: inputQuantityNumberic, unit: inputQuantityUnit } = parseUnit(totalQuantity.substring(1))
+  if (inputQuantityUnit === productUnitOnly) {
+    for (const p of products) {
+      const { unitBestPrice, unit } = p
+      const { number: productNumberic } = parseUnit(unit)
+      const itemActualQuantity = safeDivide(inputQuantityNumberic, productNumberic)
+      const itemUnitPrice = safeDivide(totalPriceNumeric, itemActualQuantity) || 0
+      const level = calculatePriceLevel(itemUnitPrice, unitBestPrice)
+      comparisons.push({ ...p, level, quantity: itemActualQuantity, unitCurrentPrice: itemUnitPrice })
+    }
+
+    return comparisons
+  }
+
+  // Calculate comparison items for each product
   const formulas = new Set<string>()
   const hitUnits = new Set<string>()
   COMMON_FORMULAS.forEach(([unit, formula]) => {
@@ -45,15 +63,13 @@ export function calculateProductComparisons(totalPrice: string, totalQuantity: s
     hitUnits.add(formulaUnit)
   })
 
-  // Calculate comparison items for each product
-  const comparisons: ComparisonItem[] = []
   for (const p of products) {
     // Calculate actual quantity for each item (if formula calculation is needed)
     let itemActualQuantity = totalQuantityNumeric // Use globally calculated quantity by default
 
-    const { unitConversions, unit, unitBestPrice } = p
+    const { unitConversions, unit: productUnit, unitBestPrice } = p
     if (isFormula(totalQuantity)) {
-      if (!unit) {
+      if (!productUnit) {
         continue
       }
 
@@ -63,9 +79,10 @@ export function calculateProductComparisons(totalPrice: string, totalQuantity: s
         return !hitUnits.has(parsedFormula.unit)
       })
 
-      // 如果单位为 每 100g，则需要将公式转换成 每 1g 进行计算，unit 与 formulas 都需要转换
-      const unitOnly = parseUnit(unit).unit
-      const adjustedFormulas = batchProcessUnitConversionNumericPart(unit, Array.from(formulas))
+      // If the unit is something like 'per 100g', the formula needs to be converted to 'per 1g' for calculation.
+      // Both unit and formulas need to be converted.
+      const unitOnly = parseUnit(productUnit).unit
+      const adjustedFormulas = batchProcessUnitConversionNumericPart(productUnit, Array.from(formulas))
       const mergedUnitConversions = [...filteredUnitConversions, ...adjustedFormulas]
       const formula = convertChineseNumeralsInString(totalQuantity.substring(1).trim())
       const itemCalculatedQuantity = calculateFormulaQuantity(`= ${formula}`, unitOnly, mergedUnitConversions, unitOnly)
