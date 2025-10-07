@@ -22,14 +22,17 @@ export interface SearchableSelectProps {
   required?: boolean
   size?: 'sm' | 'md' | 'lg'
   searchable?: boolean
+  enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send'
+  tabIndex?: number
 }
 
 export default function SearchableSelect(props: SearchableSelectProps) {
-  const { className, options = [], value, placeholder, onChange, clearable = true, size = 'sm', searchable = true } = props
+  const { className, options = [], value, placeholder, onChange, clearable = true, size = 'sm', searchable = true, enterKeyHint = 'done', tabIndex } = props
 
   const [selectedOption, setSelectedOption] = useState(value)
   const [searchTerm, setSearchTerm] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const selectRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const isMobile = useIsMobile()
@@ -55,6 +58,7 @@ export default function SearchableSelect(props: SearchableSelectProps) {
     const handleClickOutside = (event: MouseEvent) => {
       if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
         setIsOpen(false)
+        setActiveIndex(-1)
       }
     }
 
@@ -75,11 +79,32 @@ export default function SearchableSelect(props: SearchableSelectProps) {
     }
   }, [isOpen, isMobile])
 
+  // Scroll active option into view
+  useEffect(() => {
+    if (activeIndex >= 0 && isOpen) {
+      const optionElements = selectRef.current?.querySelectorAll('[data-option-index]')
+      if (optionElements && optionElements[activeIndex]) {
+        optionElements[activeIndex].scrollIntoView({ block: 'nearest' })
+      }
+    }
+  }, [activeIndex, isOpen])
+
   const handleOptionSelect = (optionValue: any) => {
     setSelectedOption(optionValue)
     onChange && onChange(optionValue)
     setIsOpen(false)
     setSearchTerm('')
+    setActiveIndex(-1)
+    
+    // Move focus to next element if enterKeyHint is 'next' or 'done'
+    if (enterKeyHint === 'next' || enterKeyHint === 'done') {
+      if (tabIndex !== undefined) {
+        const nextElement = document.querySelector(`input[tabindex="${tabIndex + 1}"]`) as HTMLElement | null
+        if (nextElement) {
+          nextElement.focus()
+        }
+      }
+    }
   }
 
   const clearSelection = () => {
@@ -96,6 +121,50 @@ export default function SearchableSelect(props: SearchableSelectProps) {
   // Find the label for the selected value
   const selectedLabel = options.find((option) => option.value === selectedOption)?.label || ''
 
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        setIsOpen(true)
+        setActiveIndex(-1)
+      }
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        if (filteredOptions.length > 0) {
+          setActiveIndex(prevIndex => 
+            prevIndex < filteredOptions.length - 1 ? prevIndex + 1 : prevIndex
+          )
+        }
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        if (filteredOptions.length > 0) {
+          setActiveIndex(prevIndex => 
+            prevIndex > 0 ? prevIndex - 1 : -1
+          )
+        }
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (activeIndex >= 0 && activeIndex < filteredOptions.length) {
+          handleOptionSelect(filteredOptions[activeIndex].value)
+        } else if (filteredOptions.length > 0) {
+          handleOptionSelect(filteredOptions[0].value)
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setIsOpen(false)
+        setActiveIndex(-1)
+        break
+    }
+  }
+
   return (
     <div
       ref={selectRef}
@@ -104,6 +173,7 @@ export default function SearchableSelect(props: SearchableSelectProps) {
         'rounded-md': size === 'md',
         'rounded-lg': size === 'lg',
       })}
+      onKeyDown={handleKeyDown}
     >
       {/* Display selected value or placeholder */}
       <div
@@ -127,6 +197,7 @@ export default function SearchableSelect(props: SearchableSelectProps) {
           }
         )}
         onClick={() => setIsOpen(!isOpen)}
+        tabIndex={tabIndex}
       >
         {selectedOption ? <span className="truncate">{selectedLabel}</span> : <span className="text-gray-400">{placeholder || 'Select'}</span>}
       </div>
@@ -210,6 +281,7 @@ export default function SearchableSelect(props: SearchableSelectProps) {
                   }
                 )}
                 onClick={(e) => e.stopPropagation()}
+                enterKeyHint={enterKeyHint}
               />
             </div>
           )}
@@ -217,9 +289,10 @@ export default function SearchableSelect(props: SearchableSelectProps) {
           {/* Options list */}
           <div className="max-h-60 overflow-y-auto">
             {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
+              filteredOptions.map((option, index) => (
                 <div
                   key={option.value}
+                  data-option-index={index}
                   className={classNames(
                     'px-4',
                     'cursor-pointer',
@@ -230,7 +303,7 @@ export default function SearchableSelect(props: SearchableSelectProps) {
                     'box-border',
                     'w-full',
                     'text-white',
-                    option.value === selectedOption ? 'bg-gray-700 text-white' : '',
+                    index === activeIndex ? 'bg-gray-700' : '',
                     {
                       'py-1': size === 'sm',
                       'py-2': size === 'md',
