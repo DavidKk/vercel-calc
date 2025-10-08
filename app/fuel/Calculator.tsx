@@ -5,6 +5,9 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FuelPrice } from '@/app/actions/fuel/price'
 import { useFullscreen } from '@/hooks/useFullscreen'
 import { useLocalStorageState } from '@/hooks/useLocalStorageState'
+import { parseFormattedNumber } from '@/utils/format'
+import { calculateDiscountPerLiter, calculateFinalPricePerLiter } from '@/utils/fuel/calculateDiscountInfo'
+import { add, divide, subtract } from '@/utils/math'
 
 import { InputSection } from './components/InputSection'
 import { Result } from './components/Result'
@@ -161,8 +164,8 @@ export function Calculator({ fuelTypes, fuelPrices, defaultProvince }: Calculato
 
   const calculationResult = useMemo(() => {
     const { fuel, rechargeAmount, giftAmount } = currentSelectedFuel
-    const recharge = parseFloat(rechargeAmount) || 0
-    const gift = parseFloat(giftAmount) || 0
+    const recharge = parseFormattedNumber(rechargeAmount) || 0
+    const gift = parseFormattedNumber(giftAmount) || 0
 
     // If form is incomplete (recharge amount is 0), only display current fuel price
     if (recharge <= 0 && gift <= 0) {
@@ -189,10 +192,11 @@ export function Calculator({ fuelTypes, fuelPrices, defaultProvince }: Calculato
       }
     }
 
-    // Simplified calculation of discount per liter
-    const totalAmount = recharge + gift
-    const discountPerLiter = totalAmount > 0 ? (gift * fuel.unitPrice) / totalAmount : 0
-    const finalPricePerLiter = fuel.unitPrice - discountPerLiter
+    // Calculate discount per liter using the new independent function
+    const discountPerLiter = calculateDiscountPerLiter(recharge, gift, fuel.unitPrice)
+
+    // Calculate final price per liter
+    const finalPricePerLiter = calculateFinalPricePerLiter(fuel.unitPrice, discountPerLiter)
 
     return {
       fuel,

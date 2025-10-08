@@ -73,19 +73,19 @@ export function Result({ calculationResult, selectedProvince }: ResultProps) {
           <>
             {/* First line: Discount amount (how much is reduced per liter) */}
             <div className="text-white text-2xl font-bold mb-2">
-              -<PriceDisplay amount={calculationResult.discountPerLiter} currency="¥" size="lg" />
+              <span className="mr-1">-</span>
+              <PriceDisplay amount={calculationResult.discountPerLiter} currency="¥" size="lg" />
               <span className="text-gray-400 text-sm ml-2">{getDiscountPercentageDescription(calculationResult.fuel.unitPrice, calculationResult.finalPricePerLiter)}</span>
             </div>
 
-            {/* Second line: Price per liter - original price with strikethrough and discounted price */}
+            {/* Second line: Price per liter - discounted price and original price with strikethrough */}
             <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="text-gray-400 text-sm line-through">
-                <PriceDisplay amount={calculationResult.fuel.unitPrice} currency="¥" size="md" />
-                /L
-              </span>
-              <span className="text-gray-400">→</span>
               <span className="text-white text-sm">
                 <PriceDisplay amount={calculationResult.finalPricePerLiter} currency="¥" size="md" />
+                /L
+              </span>
+              <span className="text-gray-400 text-xs line-through">
+                <PriceDisplay amount={calculationResult.fuel.unitPrice} currency="¥" size="xs" />
                 /L
               </span>
             </div>
