@@ -1,6 +1,5 @@
 import type { ProductType } from '@/app/actions/prices/product'
-
-import { PriceDisplay } from '../PriceDisplay'
+import { PriceDisplay } from '@/components/PriceDisplay'
 
 export interface PlaceholderProps {
   product: ProductType

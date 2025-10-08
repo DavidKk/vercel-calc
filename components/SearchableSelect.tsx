@@ -95,7 +95,7 @@ export default function SearchableSelect(props: SearchableSelectProps) {
     setIsOpen(false)
     setSearchTerm('')
     setActiveIndex(-1)
-    
+
     // Move focus to next element if enterKeyHint is 'next' or 'done'
     if (enterKeyHint === 'next' || enterKeyHint === 'done') {
       if (tabIndex !== undefined) {
@@ -136,17 +136,13 @@ export default function SearchableSelect(props: SearchableSelectProps) {
       case 'ArrowDown':
         e.preventDefault()
         if (filteredOptions.length > 0) {
-          setActiveIndex(prevIndex => 
-            prevIndex < filteredOptions.length - 1 ? prevIndex + 1 : prevIndex
-          )
+          setActiveIndex((prevIndex) => (prevIndex < filteredOptions.length - 1 ? prevIndex + 1 : prevIndex))
         }
         break
       case 'ArrowUp':
         e.preventDefault()
         if (filteredOptions.length > 0) {
-          setActiveIndex(prevIndex => 
-            prevIndex > 0 ? prevIndex - 1 : -1
-          )
+          setActiveIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : -1))
         }
         break
       case 'Enter':

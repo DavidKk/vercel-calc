@@ -4,7 +4,7 @@ import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 
 import type { ProductType } from '@/app/actions/prices/product'
 import { Button } from '@/app/prices/components/Button'
-import { PriceDisplay } from '@/app/prices/components/PriceDisplay'
+import { PriceDisplay } from '@/components/PriceDisplay'
 
 export interface ProductItemProps {
   product: ProductType

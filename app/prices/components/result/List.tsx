@@ -1,7 +1,7 @@
-import { PriceDisplay } from '@/app/prices/components/PriceDisplay'
 import { PriceLevelDisplay } from '@/app/prices/components/PriceLevelDisplay'
 import { Quantity } from '@/app/prices/components/Quantity'
 import type { PriceLevel } from '@/app/prices/types'
+import { PriceDisplay } from '@/components/PriceDisplay'
 import { safeDivide } from '@/utils/calc'
 
 /**
@@ -60,18 +60,23 @@ export function List({ items, onBrandSelect }: ListProps) {
 
               {remark && <div className="text-gray-400 text-xs">{remark}</div>}
 
-              <div className="flex items-center gap-x-2">
+              <div className="flex items-center gap-x-1">
                 <span className="text-white font-light text-lg">{unitCurrentPrice ? <PriceDisplay amount={unitCurrentPrice} size="lg" /> : <>N/A</>}</span>
+                {unit && (
+                  <span className="text-gray-400 text-sm">
+                    /<Quantity quantity={1} unit={unit} />
+                  </span>
+                )}
                 {quantity && unit && (
                   <span className="text-gray-400 text-sm">
-                    (total <Quantity quantity={quantity} unit={unit} />)
+                    (Total <Quantity quantity={quantity} unit={unit} />)
                   </span>
                 )}
               </div>
 
               <div className="flex items-center flex-wrap gap-x-1">
                 <span className="text-gray-400 text-[10px] bg-gray-600 px-1 rounded-sm font-bold">BEST</span>
-                <PriceDisplay amount={unitBestPrice} classNName="text-gray-400 text-sm" size="md" />
+                <PriceDisplay amount={unitBestPrice} className="text-gray-400 text-sm" size="md" />
                 {unit && (
                   <span className="text-gray-400 text-sm">
                     /<Quantity quantity={1} unit={unit} />
