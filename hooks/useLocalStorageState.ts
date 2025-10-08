@@ -7,17 +7,28 @@ export function useLocalStorageState<T>(key: string, defaultValue: T | (() => T)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const content = localStorage.getItem(token)
-      const data = content ? JSON.parse(content) : null
-      setState(data)
+      if (!(typeof content === 'string' && content.length > 0)) {
+        return
+      }
+
+      try {
+        const data = JSON.parse(content)
+        setState(data)
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('localStorage read failed', e)
+      }
     }
   }, [])
 
   useEffect(() => {
-    try {
-      localStorage.setItem(token, JSON.stringify(state))
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error('localStorage write failed', e)
+    if (typeof state !== 'undefined') {
+      try {
+        localStorage.setItem(token, JSON.stringify(state))
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('localStorage write failed', e)
+      }
     }
   }, [token, state])
 

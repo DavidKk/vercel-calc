@@ -3,7 +3,5 @@ export const DEFAULT_NAV = {
     { name: 'Prices', href: '/prices' },
     { name: 'Manager', href: '/prices/manager' },
   ],
-  fuel: [
-    { name: 'Fuel', href: '/fuel' },
-  ],
+  fuel: [{ name: 'Fuel', href: '/fuel' }],
 }

@@ -13,9 +13,12 @@ export default async function FuelDiscountPage() {
   // Fetch fuel price data on the server side
   const fuelPrices = await getFuelPrices()
 
+  // Set default province to "广东" (Guangdong)
+  const defaultProvince = '广东'
+
   return (
     <div className="flex justify-center w-full min-h-[calc(100vh-124px)] p-2 md:p-4 bg-black">
-      <Calculator fuelTypes={FUEL_TYPES} fuelPrices={fuelPrices} />
+      <Calculator fuelTypes={FUEL_TYPES} fuelPrices={fuelPrices} defaultProvince={defaultProvince} />
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import type { FuelPrice } from '@/app/actions/fuel/price'
 import { useFullscreen } from '@/hooks/useFullscreen'
-import { useLocation } from '@/hooks/useLocation'
+import { useLocalStorageState } from '@/hooks/useLocalStorageState'
 
 import { InputSection } from './components/InputSection'
 import { Result } from './components/Result'
@@ -13,25 +13,21 @@ import type { FuelType, ProvincePrice, SelectedFuel } from './types'
 export interface CalculatorProps {
   fuelTypes: FuelType[]
   fuelPrices: FuelPrice[]
+  defaultProvince: string
 }
 
-export function Calculator({ fuelTypes, fuelPrices }: CalculatorProps) {
+export function Calculator({ fuelTypes, fuelPrices, defaultProvince }: CalculatorProps) {
   const { isFullscreen, toggleFullscreen, elementRef } = useFullscreen<HTMLDivElement>()
-  const { province: userProvince, loading: locationLoading } = useLocation()
+
+  // Use localStorage to remember selected province and fuel type
+  const [selectedProvince = defaultProvince, setSelectedProvince] = useLocalStorageState<string>('fuel-selected-province', () => defaultProvince)
+  const [selectedFuelId, setSelectedFuelId] = useLocalStorageState<string>('fuel-selected-fuel-id', () => fuelTypes[0]?.id || '')
+
   const [selectedFuel, setSelectedFuel] = useState<SelectedFuel>({
-    fuel: fuelTypes[0],
+    fuel: fuelTypes.find((f) => f.id === selectedFuelId) || fuelTypes[0] || { id: '92', name: '92 Gasoline', unit: 'L', unitPrice: 7.0 },
     rechargeAmount: '',
     giftAmount: '',
   })
-  // Use the first province from fuelPrices as default, or '北京' if none available
-  const defaultProvince = fuelPrices && fuelPrices.length > 0 ? fuelPrices[0].province : ''
-  const [selectedProvince, setSelectedProvince] = useState<string>(defaultProvince)
-  const [isMounted, setIsMounted] = useState(false)
-
-  // Mark component as mounted to ensure it runs in CSR environment
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
 
   // Extract province list and price data from fuelPrices
   const { provinces, provincePrices } = useMemo(() => {
@@ -51,38 +47,32 @@ export function Calculator({ fuelTypes, fuelPrices }: CalculatorProps) {
       }
     }
 
+    // If no fuel prices data, provide default province list with the default province
     return {
-      provinces: [],
+      provinces: [defaultProvince],
       provincePrices: [],
     }
-  }, [fuelPrices])
+  }, [fuelPrices, defaultProvince])
 
-  // Get user's current province
+  // Update selected fuel when fuel type changes
   useEffect(() => {
-    if (!isMounted || provinces.length === 0) return
+    const fuel = fuelTypes.find((f) => f.id === selectedFuelId) || fuelTypes[0] || { id: '92', name: '92 Gasoline', unit: 'L', unitPrice: 7.0 }
+    setSelectedFuel((prev) => ({
+      ...prev,
+      fuel,
+    }))
+  }, [selectedFuelId, fuelTypes])
 
-    // Use province information obtained from useLocation hook
-    if (!locationLoading && userProvince.chinese) {
-      const province = userProvince.chinese
-      if (provinces.includes(province)) {
-        setSelectedProvince(province)
-      }
-    } else {
-      // If user province is not obtained, use default province
-      setSelectedProvince(provinces[0])
-    }
-  }, [isMounted, provinces, locationLoading, userProvince])
-
-  // Check if there is input value
-  const hasValue = useMemo(() => {
-    return selectedFuel.rechargeAmount.trim() !== '' || selectedFuel.giftAmount.trim() !== ''
-  }, [selectedFuel])
+  // Check if there is input value - simple boolean, no need for useMemo
+  const hasValue = selectedFuel.rechargeAmount.trim() !== '' || selectedFuel.giftAmount.trim() !== ''
 
   const updateProvince = (province: string) => {
     setSelectedProvince(province)
   }
 
   const updateFuelType = (fuelId: string) => {
+    setSelectedFuelId(fuelId)
+
     const fuel = fuelTypes.find((f) => f.id === fuelId) || fuelTypes[0]
 
     // If province price data is available, update corresponding fuel price
@@ -218,7 +208,7 @@ export function Calculator({ fuelTypes, fuelPrices }: CalculatorProps) {
   return (
     <div ref={elementRef} className="flex flex-col w-full max-w-4xl bg-black rounded-lg p-2 md:p-4">
       <div className="flex flex-col md:flex-row gap-x-4 flex-1">
-        {/* 左侧：输入区域 */}
+        {/* Left: Input Section */}
         <div className="flex flex-col md:w-1/2">
           <div className="mb-3 flex-shrink-0">
             <InputSection
@@ -238,7 +228,7 @@ export function Calculator({ fuelTypes, fuelPrices }: CalculatorProps) {
           </div>
         </div>
 
-        {/* 右侧：结果展示区域 */}
+        {/* Right: Result Display Area */}
         <div className="flex flex-col md:w-1/2">
           <div className="bg-gray-900 rounded-lg p-4">
             <Result calculationResult={calculationResult} selectedProvince={selectedProvince} />
