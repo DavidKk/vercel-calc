@@ -171,6 +171,8 @@ export function InputSection({
 
         {/* Bottom section: Input fields - Recharge amount */}
         <NumberInput
+          name="rechargeAmount"
+          inputMode="decimal"
           value={selectedFuel.rechargeAmount}
           unit="¥"
           placeholder="Recharge Amount"
@@ -183,6 +185,8 @@ export function InputSection({
 
         {/* Bottom section: Input fields - Gift amount */}
         <NumberInput
+          name="giftAmount"
+          inputMode="decimal"
           value={selectedFuel.giftAmount}
           unit="¥"
           placeholder="Gift Amount"
