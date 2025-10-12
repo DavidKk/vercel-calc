@@ -1,3 +1,6 @@
+// Define Chinese numeral characters as a constant
+const CHINESE_NUMERAL_CHARS = '零一二两三四五六七八九十百千万亿点'
+
 export function formatProjectName(name: string): string {
   return name
     .replace('vercel-', '')
@@ -146,6 +149,27 @@ export function parseUnit(unit: string): { number: number; unit: string } {
   // Find where number ends and unit begins
   const cleanInput = parts[0].replace(/,/g, '') // Remove commas
 
+  // Special handling for "两" as unit
+  // If the input ends with "两" and the part before "两" is a valid number
+  if (cleanInput.endsWith('两') && cleanInput.length > 1) {
+    // Special case for "两两"
+    if (cleanInput === '两两') {
+      return {
+        number: 2,
+        unit: '两',
+      }
+    }
+
+    const numberPart = cleanInput.substring(0, cleanInput.length - 1)
+    const number = parseFormattedNumber(numberPart)
+    if (!isNaN(number) && number > 0) {
+      return {
+        number: number,
+        unit: '两',
+      }
+    }
+  }
+
   // First, try to extract Chinese numerals
   const chinesePart = extractChineseNumerals(cleanInput)
   if (chinesePart) {
@@ -205,6 +229,11 @@ export function parseUnitConversion(conversion: string): { number: number; unit:
  */
 export function convertChineseToArabic(chineseNumber: string): number {
   if (!chineseNumber) return 0
+
+  // Special case: if the string is exactly "两两", treat first "两" as number 2
+  if (chineseNumber === '两两') {
+    return 2
+  }
 
   // Define Chinese numeral mappings
   const chineseNumerals: { [key: string]: number } = {
@@ -365,14 +394,11 @@ export function extractChineseNumerals(value: string): string {
     return ''
   }
 
-  // Define Chinese numeral characters
-  const chineseNumeralChars = '零一二两三四五六七八九十百千万亿点'
-
   // Extract the Chinese numeral part from the beginning of the string
   let chineseNumeralPart = ''
 
   for (let i = 0; i < value.length; i++) {
-    if (chineseNumeralChars.includes(value[i])) {
+    if (CHINESE_NUMERAL_CHARS.includes(value[i])) {
       chineseNumeralPart += value[i]
     } else {
       // Stop at the first non-Chinese numeral character
@@ -393,20 +419,17 @@ export function convertChineseNumeralsInString(value: string): string {
     return value
   }
 
-  // Define Chinese numeral characters
-  const chineseNumeralChars = '零一二两三四五六七八九十百千万亿点'
-
   let result = ''
   let i = 0
 
   while (i < value.length) {
     // Check if current character is a Chinese numeral
-    if (chineseNumeralChars.includes(value[i])) {
+    if (CHINESE_NUMERAL_CHARS.includes(value[i])) {
       // Extract the entire Chinese numeral sequence
       let chineseNumeralPart = ''
       let j = i
 
-      while (j < value.length && chineseNumeralChars.includes(value[j])) {
+      while (j < value.length && CHINESE_NUMERAL_CHARS.includes(value[j])) {
         chineseNumeralPart += value[j]
         j++
       }
@@ -415,13 +438,21 @@ export function convertChineseNumeralsInString(value: string): string {
       // If the sequence ends with "两" and the preceding part is a valid number
       // we should treat "两" as a unit, not as the number 2
       if (chineseNumeralPart.endsWith('两') && chineseNumeralPart.length > 1) {
-        const numberPart = chineseNumeralPart.substring(0, chineseNumeralPart.length - 1)
-        const numberValue = convertChineseToArabic(numberPart)
-        if (!isNaN(numberValue) && numberValue > 0) {
-          // Treat "两" as a unit
-          result += numberValue.toString() + '两'
-          i = j
-          continue
+        // Check if "两" is at the end of the string or followed by non-Chinese numeral characters
+        // In this case, it's likely a unit
+        const isAtEndOfString = j >= value.length
+        const nextChar = value[j] || ''
+        const isFollowedByNonChineseNumeral = !CHINESE_NUMERAL_CHARS.includes(nextChar)
+
+        if (isAtEndOfString || isFollowedByNonChineseNumeral) {
+          const numberPart = chineseNumeralPart.substring(0, chineseNumeralPart.length - 1)
+          const numberValue = convertChineseToArabic(numberPart)
+          if (!isNaN(numberValue) && numberValue > 0) {
+            // Treat "两" as a unit
+            result += numberValue.toString() + '两'
+            i = j
+            continue
+          }
         }
       }
 
@@ -434,6 +465,15 @@ export function convertChineseNumeralsInString(value: string): string {
       // Move index to the end of the Chinese numeral sequence
       i = j
     } else {
+      // Handle case where we have Arabic numerals followed by "两"
+      // Check if current character is a digit and next character is "两"
+      if (/\d/.test(value[i]) && value[i + 1] === '两' && (i + 2 >= value.length || !CHINESE_NUMERAL_CHARS.includes(value[i + 2]))) {
+        // This is a case like "2两" where "两" should be treated as unit
+        result += value[i] + '两'
+        i += 2
+        continue
+      }
+
       // Add non-Chinese numeral character as is
       result += value[i]
       i++

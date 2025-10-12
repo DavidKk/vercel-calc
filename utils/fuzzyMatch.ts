@@ -16,9 +16,9 @@ export function fuzzyMatch(text: string, pattern: string) {
   const lowerText = text.toLowerCase()
   const lowerPattern = pattern.toLowerCase()
 
-  // Split text by spaces and Chinese characters for more flexible matching
-  // This allows both English word matching and Chinese character matching
-  const splitRegex = /[\s\u4e00-\u9fa5]+/g
+  // Split text by spaces and non-English characters for more flexible matching
+  // This allows both English word matching and character-by-character matching for other languages
+  const splitRegex = /[\s\W]+|[^a-zA-Z0-9]/g
   const segments = lowerText.split(splitRegex).filter(Boolean)
 
   // Also include the original text as a segment for character-level matching
@@ -80,8 +80,8 @@ export function fuzzyMatch(text: string, pattern: string) {
  * @param token The token to search for
  */
 function checkTokenMatch(segment: string, token: string): boolean {
-  // If token has Chinese characters, use fuzzy character matching
-  if (/[\u4e00-\u9fa5]/.test(token)) {
+  // If token has non-English characters, use fuzzy character matching
+  if (/[^a-zA-Z0-9]/.test(token)) {
     return isFuzzyCharacterMatch(segment, token)
   }
   // For English tokens, use substring matching
@@ -89,12 +89,12 @@ function checkTokenMatch(segment: string, token: string): boolean {
 }
 
 /**
- * Check if all characters in pattern exist in text (for Chinese character fuzzy matching)
+ * Check if all characters in pattern exist in text (for character fuzzy matching)
  * @param text The text to search in
  * @param pattern The pattern to search for
  */
 function isFuzzyCharacterMatch(text: string, pattern: string): boolean {
-  // For Chinese characters, check if all characters in pattern exist in text
+  // For non-English characters, check if all characters in pattern exist in text
   for (const char of pattern) {
     if (!text.includes(char)) {
       return false

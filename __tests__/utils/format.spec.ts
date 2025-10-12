@@ -311,4 +311,20 @@ describe('convertChineseNumeralsInString', () => {
     expect(convertChineseNumeralsInString('十斤十五两')).toBe('10斤15两')
     expect(convertChineseNumeralsInString('= 一百公斤二百斤')).toBe('= 100公斤200斤')
   })
+
+  // New test cases for the "两" unit handling
+  it('should treat "两" as unit when it is at the end of a Chinese numeral sequence', () => {
+    expect(convertChineseNumeralsInString('二两')).toBe('2两')
+    expect(convertChineseNumeralsInString('两两')).toBe('2两')
+    expect(convertChineseNumeralsInString('二两盐')).toBe('2两盐')
+    expect(convertChineseNumeralsInString('两两盐')).toBe('2两盐')
+    expect(convertChineseNumeralsInString('一百两')).toBe('100两')
+    expect(convertChineseNumeralsInString('两百两')).toBe('200两')
+  })
+
+  it('should still treat "两" as number when it is not at the end', () => {
+    expect(convertChineseNumeralsInString('两百')).toBe('200')
+    expect(convertChineseNumeralsInString('两百八十')).toBe('280')
+    expect(convertChineseNumeralsInString('两千')).toBe('2000')
+  })
 })
