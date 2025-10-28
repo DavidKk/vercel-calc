@@ -1,6 +1,6 @@
 import { createProduct, deleteProduct, getAllProducts, getProductById, updateProduct } from '@/app/actions/prices/product'
 import { api } from '@/initializer/controller'
-import { jsonInvalidParameters } from '@/initializer/response'
+import { jsonInvalidParameters, jsonSuccess } from '@/initializer/response'
 import { withAuthHandler } from '@/initializer/wrapper'
 
 /**
@@ -14,12 +14,15 @@ export const GET = api(async (req) => {
 
   if (id) {
     const product = await getProductById(id)
-    if (!product) return jsonInvalidParameters('product not found')
-    return { data: product }
+    if (!product) {
+      return jsonInvalidParameters('product not found')
+    }
+
+    return jsonSuccess(product)
   }
 
   const products = await getAllProducts()
-  return { data: products }
+  return jsonSuccess(products)
 })
 
 /**
@@ -33,7 +36,7 @@ export const POST = api(
     }
 
     const product = await createProduct(body)
-    return { data: product }
+    return jsonSuccess(product)
   })
 )
 
@@ -49,8 +52,11 @@ export const PUT = api(
 
     const updates = await req.json()
     const updated = await updateProduct(id, updates)
-    if (!updated) return jsonInvalidParameters('product not found')
-    return { data: updated }
+    if (!updated) {
+      return jsonInvalidParameters('product not found')
+    }
+
+    return jsonSuccess(updated)
   })
 )
 
@@ -62,9 +68,11 @@ export const DELETE = api(
   withAuthHandler(async (req) => {
     const url = new URL(req.url)
     const id = url.searchParams.get('id')
-    if (!id) return jsonInvalidParameters('missing id')
+    if (!id) {
+      return jsonInvalidParameters('missing id')
+    }
 
-    const ok = await deleteProduct(id)
-    return { data: ok }
+    await deleteProduct(id)
+    return jsonSuccess(true)
   })
 )

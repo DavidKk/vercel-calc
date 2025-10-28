@@ -1,7 +1,7 @@
 import type { PriceLevel } from '@/app/prices/types'
 import { getPriceLevelText } from '@/app/prices/types'
 import { api } from '@/initializer/controller'
-import { jsonInvalidParameters } from '@/initializer/response'
+import { jsonInvalidParameters, jsonSuccess } from '@/initializer/response'
 import { safeDivide } from '@/utils/calc'
 import { calculatePriceLevel } from '@/utils/price/calculatePriceLevel'
 
@@ -58,10 +58,6 @@ export const POST = api(async (req) => {
     return jsonInvalidParameters('Quantity cannot be zero')
   }
 
-  try {
-    const result = await calculatePriceAction(productName, unitPrice, quantity, unitBestPrice)
-    return Response.json(result)
-  } catch (error) {
-    return jsonInvalidParameters(error instanceof Error ? error.message : 'Invalid parameters')
-  }
+  const result = await calculatePriceAction(productName, unitPrice, quantity, unitBestPrice)
+  return jsonSuccess(result)
 })

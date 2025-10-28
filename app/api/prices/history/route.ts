@@ -1,6 +1,6 @@
 import { addHistory, clearHistory, getHistoryList, modifyHistory, removeHistory } from '@/app/actions/prices/history'
 import { api } from '@/initializer/controller'
-import { jsonInvalidParameters } from '@/initializer/response'
+import { jsonInvalidParameters, jsonSuccess } from '@/initializer/response'
 import { withAuthHandler } from '@/initializer/wrapper'
 
 /**
@@ -12,7 +12,7 @@ export const GET = api(
     const url = new URL(req.url)
     const productType = url.searchParams.get('productType') || undefined
     const list = await getHistoryList(productType)
-    return { data: list }
+    return jsonSuccess(list)
   })
 )
 
@@ -24,7 +24,7 @@ export const POST = api(
     const body = await req.json()
     if (!body) return jsonInvalidParameters('invalid body')
     const updated = await addHistory(body)
-    return { data: updated }
+    return jsonSuccess(updated)
   })
 )
 
@@ -38,7 +38,7 @@ export const DELETE = api(
     const id = url.searchParams.get('id')
     if (!id) return jsonInvalidParameters('missing id')
     const updated = await removeHistory(Number(id))
-    return { data: updated }
+    return jsonSuccess(updated)
   })
 )
 
@@ -53,7 +53,7 @@ export const PATCH = api(
     if (!id) return jsonInvalidParameters('missing id')
     const updates = await req.json()
     const updated = await modifyHistory(Number(id), updates)
-    return { data: updated }
+    return jsonSuccess(updated)
   })
 )
 
@@ -63,6 +63,6 @@ export const PATCH = api(
 export const PUT = api(
   withAuthHandler(async () => {
     await clearHistory()
-    return { data: true }
+    return jsonSuccess(true)
   })
 )
