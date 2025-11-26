@@ -2,7 +2,7 @@
 
 import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import classNames from 'classnames'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export interface Option {
   value: any
@@ -22,7 +22,6 @@ export interface ClearableSelectProps {
 export default function ClearableSelect(props: ClearableSelectProps) {
   const { options = [], value, placeholder, onChange, clearable = true, required, size = 'sm' } = props
   const [selectedOption, setSelectedOption] = useState(value)
-  const selectRef = useRef<HTMLSelectElement>(null)
 
   const handleOptionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value

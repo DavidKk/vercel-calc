@@ -7,7 +7,6 @@ import { useFullscreen } from '@/hooks/useFullscreen'
 import { useLocalStorageState } from '@/hooks/useLocalStorageState'
 import { parseFormattedNumber } from '@/utils/format'
 import { calculateDiscountPerLiter, calculateFinalPricePerLiter } from '@/utils/fuel/calculateDiscountInfo'
-import { add, divide, subtract } from '@/utils/math'
 
 import { InputSection } from './components/InputSection'
 import { Result } from './components/Result'
@@ -105,11 +104,11 @@ export function Calculator({ fuelTypes, fuelPrices, defaultProvince }: Calculato
     setSelectedFuel({ ...selectedFuel, fuel })
   }
 
-  const updateRechargeAmount = (value: string, numericValue: number) => {
+  const updateRechargeAmount = (value: string) => {
     setSelectedFuel({ ...selectedFuel, rechargeAmount: value })
   }
 
-  const updateGiftAmount = (value: string, numericValue: number) => {
+  const updateGiftAmount = (value: string) => {
     setSelectedFuel({ ...selectedFuel, giftAmount: value })
   }
 

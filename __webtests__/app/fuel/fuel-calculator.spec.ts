@@ -24,41 +24,59 @@ test.describe('Fuel Calculator', () => {
   })
 
   test('should show correct suggestions for recharge amount input - case 1', async ({ page }) => {
-    // Fill recharge amount with "1"
+    // Wait for recharge amount input to be visible
     const rechargeInput = page.locator('input[placeholder="Recharge Amount"]')
+    await expect(rechargeInput).toBeVisible()
+
+    // Focus the input first to ensure suggestions can be shown
+    await rechargeInput.focus()
+
+    // Fill recharge amount with "1"
     await rechargeInput.fill('1')
 
-    // Wait a bit for suggestions to appear
-    await page.waitForTimeout(500)
+    // Ensure input stays focused for suggestions to appear
+    await rechargeInput.focus()
 
-    // Check that suggestions are displayed
-    await expect(page.getByText('1,000')).toBeVisible()
+    // Wait for suggestions to appear (wait for the first suggestion)
+    await expect(page.getByText('1,000')).toBeVisible({ timeout: 10000 })
     await expect(page.getByText('10,000')).toBeVisible()
   })
 
   test('should show correct suggestions for gift amount input - case 1', async ({ page }) => {
-    // Fill gift amount with "1"
+    // Wait for gift amount input to be visible
     const giftInput = page.locator('input[placeholder="Gift Amount"]')
+    await expect(giftInput).toBeVisible()
+
+    // Focus the input first to ensure suggestions can be shown
+    await giftInput.focus()
+
+    // Fill gift amount with "1"
     await giftInput.fill('1')
 
-    // Wait a bit for suggestions to appear
-    await page.waitForTimeout(500)
+    // Ensure input stays focused for suggestions to appear
+    await giftInput.focus()
 
-    // Check that suggestions are displayed
-    await expect(page.getByText('100')).toBeVisible()
+    // Wait for suggestions to appear (wait for the first suggestion)
+    await expect(page.getByText('100')).toBeVisible({ timeout: 10000 })
     await expect(page.getByText('1,000')).toBeVisible()
   })
 
   test('should show correct suggestions for gift amount input - case 12', async ({ page }) => {
-    // Fill gift amount with "12"
+    // Wait for gift amount input to be visible
     const giftInput = page.locator('input[placeholder="Gift Amount"]')
+    await expect(giftInput).toBeVisible()
+
+    // Focus the input first to ensure suggestions can be shown
+    await giftInput.focus()
+
+    // Fill gift amount with "12"
     await giftInput.fill('12')
 
-    // Wait a bit for suggestions to appear
-    await page.waitForTimeout(500)
+    // Ensure input stays focused for suggestions to appear
+    await giftInput.focus()
 
-    // Check that suggestions are displayed
-    await expect(page.getByText('1,200')).toBeVisible()
+    // Wait for suggestions to appear (wait for the first suggestion)
+    await expect(page.getByText('1,200')).toBeVisible({ timeout: 10000 })
     await expect(page.getByText('12,000')).toBeVisible()
   })
 

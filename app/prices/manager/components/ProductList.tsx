@@ -21,7 +21,7 @@ export interface ProductListProps {
 }
 
 export function ProductList({ products, selectedProduct, onProductSelect, onAddNew, onProductDeleted, loading = false, onFilterChange }: ProductListProps) {
-  const [filterText, setFilterText] = useState<string>('')
+  const [, setFilterText] = useState<string>('')
 
   const handleFilterChange = (filterText: string) => {
     setFilterText(filterText)

@@ -94,7 +94,6 @@ export function divide(a: number, b: number): number {
   const bDecimal = bStr.split('.')[1]
   const aDecimalLength = aDecimal ? aDecimal.length : 0
   const bDecimalLength = bDecimal ? bDecimal.length : 0
-  const totalDecimalLength = aDecimalLength + bDecimalLength
 
   const aInt = parseInt(aStr.replace('.', ''), 10)
   const bInt = parseInt(bStr.replace('.', ''), 10)

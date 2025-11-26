@@ -17,7 +17,6 @@ A lightweight Next.js application providing calculator utilities. This repositor
   - Real-time discount calculation based on recharge and gift amounts
   - Visual discount level indicators (Excellent, Good, Acceptable, etc.)
   - Responsive UI with fullscreen mode support
-- **MCP (Machine Control Protocol) Support**: Standardized tool interface for integrating with AI agents and automation systems
 - **Developer Friendly**: Clean RESTful API design with JWT authentication and 2FA support
 
 ## Security Considerations

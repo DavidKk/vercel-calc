@@ -2,7 +2,6 @@ import { PriceLevelDisplay } from '@/app/prices/components/PriceLevelDisplay'
 import { Quantity } from '@/app/prices/components/Quantity'
 import type { PriceLevel } from '@/app/prices/types'
 import { PriceDisplay } from '@/components/PriceDisplay'
-import { safeDivide } from '@/utils/calc'
 
 /**
  * Comparison item interface for product comparison
